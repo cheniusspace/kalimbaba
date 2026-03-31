@@ -1,0 +1,72 @@
+.song-card {
+  display: flex;
+  align-items: center;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.song-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.song-card-body {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  flex: 1;
+}
+
+.song-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: var(--bg-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.song-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.song-card-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  text-transform: capitalize;
+  letter-spacing: 0.05em;
+}
+.tag + .tag::before {
+  content: '·';
+  margin-right: 8px;
+}
+
+.song-card-plays {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.song-card-fav {
+  padding: 16px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  transition: color 0.15s;
+}
+.song-card-fav:hover { color: var(--danger); }
+.song-card-fav.active { color: var(--danger); }

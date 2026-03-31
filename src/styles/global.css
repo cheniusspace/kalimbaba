@@ -1,0 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Mrs+Saint+Delafield&family=DM+Sans:wght@300;400;500&family=Josefin+Sans:wght@300;400&display=swap');
+
+/* ── LIGHT THEME ── */
+:root, [data-theme="light"] {
+  --bg:           #faf9f7;
+  --bg-card:      #ffffff;
+  --bg-surface:   #f5f2ee;
+  --bg-hover:     #f0ece6;
+  --text-primary: #1a1a1a;
+  --text-secondary:#303030;
+  --text-muted:   #a2a2a2;
+  --accent:       #b0a898;
+  --border:       #e4e0d8;
+  --brand:        #7c6f5e;
+  --brand-hover:  #5e5448;
+  --danger:       #c0392b;
+  --success:      #27ae60;
+}
+
+/* ── DARK THEME ── */
+[data-theme="dark"] {
+  --bg:           #171614;
+  --bg-card:      #1f1e1b;
+  --bg-surface:   #252320;
+  --bg-hover:     #2c2a27;
+  --text-primary: #f0ede8;
+  --text-secondary:#d4d0c8;
+  --text-muted:   #7a7870;
+  --accent:       #6e6457;
+  --border:       #333129;
+  --brand:        #c9b99a;
+  --brand-hover:  #e0cfb5;
+  --danger:       #e74c3c;
+  --success:      #2ecc71;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; font-family: inherit; }
+input, select, textarea { font-family: inherit; }
+
+/* ── TYPOGRAPHY ── */
+.font-title    { font-family: 'Cinzel', serif; }
+.font-script   { font-family: 'Mrs Saint Delafield', cursive; }
+.font-tab      { font-family: 'Josefin Sans', sans-serif; }
+.font-body     { font-family: 'DM Sans', sans-serif; }
+
+/* ── UTILITY ── */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-primary {
+  background: var(--text-primary);
+  color: var(--bg);
+}
+.btn-primary:hover { opacity: 0.85; }
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+.btn-outline:hover { background: var(--bg-surface); }
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }

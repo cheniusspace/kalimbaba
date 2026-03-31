@@ -1,0 +1,10 @@
+.favorites-page { padding: 48px 0 80px; }
+
+.favorites-header { margin-bottom: 32px; }
+.favorites-title { font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; }
+.favorites-sub { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
+
+.fav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+
+.fav-state { text-align: center; padding: 60px 0; color: var(--text-muted); font-size: 0.9rem; }
+.fav-empty-script { font-size: 2.2rem; margin-bottom: 8px; }
