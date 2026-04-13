@@ -30,7 +30,7 @@ export default function FavoritesPage() {
     <div className="favorites-page">
       <div className="container">
         <div className="favorites-header">
-          <h1 className="favorites-title font-title">My Favorites</h1>
+          <h1 className="favorites-title">My Favorites</h1>
           <p className="favorites-sub">{songs.length} saved songs</p>
         </div>
 
