@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import Navbar from './components/Navbar'
+import Footer from './components/Footer'
 import CatalogPage from './pages/CatalogPage'
 import SongPage from './pages/SongPage'
 import LoginPage from './pages/LoginPage'
@@ -16,6 +17,7 @@ export default function App() {
       <ThemeProvider>
         <AuthProvider>
           <Navbar />
+          <main>
           <Routes>
             <Route path="/"           element={<CatalogPage />} />
             <Route path="/catalog"    element={<CatalogPage />} />
@@ -25,6 +27,8 @@ export default function App() {
             <Route path="/favorites"  element={<FavoritesPage />} />
             <Route path="/admin"      element={<AdminPage />} />
           </Routes>
+          </main>
+          <Footer />
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>
