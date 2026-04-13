@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { Heart } from 'lucide-react'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+import { Heart, Pencil } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import SEO from '../components/SEO'
@@ -9,7 +9,7 @@ import './SongPage.css'
 export default function SongPage() {
   const { slug } = useParams()
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const [song, setSong] = useState(null)
   const [tabs, setTabs] = useState([])
   const [prevSong, setPrevSong] = useState(null)
@@ -121,7 +121,7 @@ export default function SongPage() {
         {/* Header */}
         <header className="song-header">
           <h1 className="song-title">{song.title}</h1>
-          <p className="song-script">Kalimba Tab</p>
+          <p className="song-script">{song.author || 'Kalimba Tab'}</p>
           <div className="song-meta">
             {song.genre && <span className="tag tag-link" onClick={() => navigate(`/?genre=${song.genre}`)}>{song.genre}</span>}
             {song.difficulty && <span className="tag tag-link" onClick={() => navigate(`/?difficulty=${song.difficulty}`)}>{song.difficulty}</span>}
@@ -133,6 +133,11 @@ export default function SongPage() {
                 <Heart size={15} fill={isFavorited ? 'currentColor' : 'none'} />
                 {isFavorited ? 'Saved' : 'Save'}
               </button>
+            )}
+            {profile?.is_admin && (
+              <Link to={`/admin?edit=${song.slug}`} className="edit-btn">
+                <Pencil size={14} /> Edit
+              </Link>
             )}
           </div>
         </header>
@@ -157,28 +162,94 @@ export default function SongPage() {
         </div>
 
         {/* Tab Card */}
-        <main className="tab-card card">
-          {tabs.map((tab, i) => {
-            const shaded = i % 2 === 0
+        {(() => {
+          const hasLyrics = tabs.some(t => t.syllables?.some(s => s && s.trim()))
+          const isShort = tabs.every(t => t.notes.length <= 8)
+          const twoCol = !hasLyrics && isShort
+
+          const renderNotes = (tab) => tab.notes.map((n, j) => (
+            <div key={j} className="pair">
+              <span className="note">
+                {n.note}{n.octave === 2 ? <sup>°°</sup> : (n.octave === 1 || n.octave === true) ? <sup>°</sup> : null}
+              </span>
+            </div>
+          ))
+
+          if (twoCol) {
+            const pairs = []
+            for (let i = 0; i < tabs.length; i += 2) pairs.push([tabs[i], tabs[i + 1]])
             return (
-            <div key={tab.id} className={`tab-row ${shaded ? 'shaded' : ''}`}>
-              <div className="pairs">
-                {tab.notes.map((n, j) => (
-                  <div key={j} className="pair">
-                    <span className="note">
-                      {n.note}{n.octave === 2 ? <sup>°°</sup> : (n.octave === 1 || n.octave === true) ? <sup>°</sup> : null}
-                    </span>
-                    <span className="syl">{tab.syllables[j]}</span>
+              <main className="tab-card card">
+                {pairs.map((pair, i) => (
+                  <div key={i} className={`tab-row tab-row-2col ${i % 2 === 0 ? 'shaded' : ''}`}>
+                    <div className="pairs tab-half">{renderNotes(pair[0])}</div>
+                    <div className="tab-pair-divider" />
+                    <div className="pairs tab-half">{pair[1] ? renderNotes(pair[1]) : null}</div>
                   </div>
                 ))}
-              </div>
-            </div>
+              </main>
             )
-          })}
-        </main>
+          }
 
+          return (
+            <main className="tab-card card">
+              {tabs.map((tab, i) => (
+                <div key={tab.id} className={`tab-row ${i % 2 === 0 ? 'shaded' : ''}`}>
+                  <div className="pairs">
+                    {tab.notes.map((n, j) => (
+                      <div key={j} className="pair">
+                        <span className="note">
+                          {n.note}{n.octave === 2 ? <sup>°°</sup> : (n.octave === 1 || n.octave === true) ? <sup>°</sup> : null}
+                        </span>
+                        <span className="syl">{tab.syllables[j]}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </main>
+          )
+        })()}
+
+        {song.description && (
+          <section className="song-description">
+            <p>{song.description}</p>
+          </section>
+        )}
+
+        {song.youtube_videos?.length > 0 && (
+          <section className="song-videos">
+            <h2 className="song-videos-title">Watch on YouTube</h2>
+            <div className="song-videos-grid">
+              {song.youtube_videos.map((v, i) => {
+                const id = extractYouTubeId(v.url)
+                if (!id) return null
+                return (
+                  <div key={i} className="song-video">
+                    <div className="song-video-embed">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${id}`}
+                        title={v.title || song.title}
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                    {v.title && <p className="song-video-label">{v.title}</p>}
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        )}
 
       </div>
     </div>
   )
+}
+
+function extractYouTubeId(url) {
+  if (!url) return null
+  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/)
+  return m ? m[1] : null
 }

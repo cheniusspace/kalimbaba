@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, Trash2, Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
@@ -7,12 +7,13 @@ import './AdminPage.css'
 
 const EMPTY_SONG = {
   title: '', slug: '', genre: '', difficulty: 'beginner',
-  audience: 'all', description: '', is_published: false
+  author: '', description: '', youtube_videos: [], is_published: false
 }
 
 export default function AdminPage() {
   const { profile, loading } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [songs, setSongs] = useState([])
   const [editing, setEditing] = useState(null)   // song being edited
   const [form, setForm] = useState(EMPTY_SONG)
@@ -25,6 +26,15 @@ export default function AdminPage() {
   }, [loading, profile])
 
   useEffect(() => { fetchSongs() }, [])
+
+  // Auto-open edit mode if ?edit=slug is in the URL
+  useEffect(() => {
+    const editSlug = searchParams.get('edit')
+    if (editSlug && songs.length > 0) {
+      const song = songs.find(s => s.slug === editSlug)
+      if (song) startEdit(song)
+    }
+  }, [searchParams, songs])
 
   async function fetchSongs() {
     const { data } = await supabase.from('songs').select('*').order('created_at', { ascending: false })
@@ -100,8 +110,9 @@ export default function AdminPage() {
       slug: form.slug || form.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
       genre: form.genre,
       difficulty: form.difficulty,
-      audience: form.audience,
+      author: form.author,
       description: form.description,
+      youtube_videos: form.youtube_videos ?? [],
       is_published: form.is_published,
       updated_at: new Date().toISOString()
     }
@@ -147,7 +158,7 @@ export default function AdminPage() {
                 <div key={song.id} className="admin-row">
                   <div className="admin-row-info">
                     <span className="admin-row-title font-title">{song.title}</span>
-                    <span className="admin-row-meta">{song.genre} · {song.difficulty} · {song.audience}</span>
+                    <span className="admin-row-meta">{song.genre} · {song.difficulty}{song.author ? ` · ${song.author}` : ''}</span>
                   </div>
                   <div className="admin-row-actions">
                     <button className="icon-btn" onClick={() => togglePublish(song)} title={song.is_published ? 'Unpublish' : 'Publish'}>
@@ -183,10 +194,26 @@ export default function AdminPage() {
                       options={['', 'children', 'pop', 'classical', 'folk', 'anime', 'other']} />
                     <SelectField label="Difficulty" value={form.difficulty} onChange={v => setForm(f => ({ ...f, difficulty: v }))}
                       options={['beginner', 'intermediate', 'advanced']} />
-                    <SelectField label="Audience" value={form.audience} onChange={v => setForm(f => ({ ...f, audience: v }))}
-                      options={['all', 'children', 'adult']} />
+                  </div>
+                  <Field label="Author / Artist" value={form.author} onChange={v => setForm(f => ({ ...f, author: v }))} />
+                  <div className="field-row">
                   </div>
                   <Field label="Description" value={form.description} onChange={v => setForm(f => ({ ...f, description: v }))} multiline />
+                  <div className="field">
+                    <label className="field-label">YouTube Videos</label>
+                    {(form.youtube_videos ?? []).map((v, i) => (
+                      <div key={i} className="video-row">
+                        <input className="field-input" placeholder="YouTube URL" value={v.url}
+                          onChange={e => setForm(f => { const vids = [...f.youtube_videos]; vids[i] = { ...vids[i], url: e.target.value }; return { ...f, youtube_videos: vids } })} />
+                        <input className="field-input" placeholder="Label (optional)" value={v.title ?? ''}
+                          onChange={e => setForm(f => { const vids = [...f.youtube_videos]; vids[i] = { ...vids[i], title: e.target.value }; return { ...f, youtube_videos: vids } })} />
+                        <button className="icon-btn danger" onClick={() => setForm(f => ({ ...f, youtube_videos: f.youtube_videos.filter((_, idx) => idx !== i) }))}><Trash2 size={14} /></button>
+                      </div>
+                    ))}
+                    <button className="btn btn-outline add-line-btn" onClick={() => setForm(f => ({ ...f, youtube_videos: [...(f.youtube_videos ?? []), { url: '', title: '' }] }))}>
+                      <Plus size={14} /> Add Video
+                    </button>
+                  </div>
                   <label className="checkbox-label">
                     <input type="checkbox" checked={form.is_published}
                       onChange={e => setForm(f => ({ ...f, is_published: e.target.checked }))} />

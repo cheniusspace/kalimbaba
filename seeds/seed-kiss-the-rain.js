@@ -35,7 +35,6 @@ async function seed() {
       slug: 'kiss-the-rain',
       genre: 'pop',
       difficulty: 'intermediate',
-      audience: 'all',
       is_published: true,
     }).select('id').single()
     if (error) { console.error('Song insert failed:', error.message); process.exit(1) }

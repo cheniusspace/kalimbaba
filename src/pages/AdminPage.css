@@ -1,5 +1,13 @@
 .admin-page { padding: 48px 0 80px; }
 
+.video-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.video-row .field-input { flex: 1; }
+
 .admin-header {
   display: flex;
   align-items: center;

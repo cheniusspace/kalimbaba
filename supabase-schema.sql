@@ -33,7 +33,8 @@ create table public.songs (
   slug text unique not null,          -- e.g. "three-little-kittens"
   genre text,                          -- e.g. "children", "pop", "classical"
   difficulty text check (difficulty in ('beginner', 'intermediate', 'advanced')),
-  audience text check (audience in ('children', 'adult', 'all')) default 'all',
+  author text,
+  youtube_videos jsonb default '[]',
   description text,
   thumbnail_url text,
   is_published boolean default false,
@@ -97,13 +98,12 @@ create policy "Users can remove favorites" on public.favorites for delete using 
 -- SEED DATA — Three Little Kittens
 -- ============================================================
 
-insert into public.songs (title, slug, genre, difficulty, audience, description, is_published)
+insert into public.songs (title, slug, genre, difficulty, description, is_published)
 values (
   'Three Little Kittens',
   'three-little-kittens',
   'children',
   'beginner',
-  'children',
   'A classic nursery rhyme perfect for beginner kalimba players.',
   true
 );

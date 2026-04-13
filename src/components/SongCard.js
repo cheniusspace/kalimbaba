@@ -21,6 +21,9 @@ export default function SongCard({ song, isFavorited, onToggleFavorite }) {
             </span>
           )}
         </div>
+        {song.description && (
+          <p className="song-card-description">{song.description}</p>
+        )}
         {song.play_count > 0 && (
           <p className="song-card-plays">{song.play_count.toLocaleString()} plays</p>
         )}

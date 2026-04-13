@@ -92,7 +92,6 @@ async function seed() {
       slug: 'yankee-doodle',
       genre: 'children',
       difficulty: 'beginner',
-      audience: 'children',
       is_published: true,
     }).select('id').single()
     if (error) { console.error('Song insert failed:', error.message); process.exit(1) }
