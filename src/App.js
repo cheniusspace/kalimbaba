@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { useEffect } from 'react'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
@@ -11,8 +12,18 @@ import SignupPage from './pages/SignupPage'
 import FavoritesPage from './pages/FavoritesPage'
 import AdminPage from './pages/AdminPage'
 import KalimbaPage from './pages/KalimbaPage'
-import { Analytics } from '@vercel/analytics/react'
+import { trackPageView } from './lib/analytics'
 import './styles/global.css'
+
+function RouteTracker() {
+  const location = useLocation()
+
+  useEffect(() => {
+    trackPageView(location.pathname + location.search, document.title)
+  }, [location])
+
+  return null
+}
 
 export default function App() {
   return (
@@ -20,7 +31,7 @@ export default function App() {
       <BrowserRouter>
         <ThemeProvider>
           <AuthProvider>
-            <Analytics />
+            <RouteTracker />
             <Navbar />
             <main>
               <Routes>

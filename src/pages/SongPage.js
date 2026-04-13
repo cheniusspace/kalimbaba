@@ -12,6 +12,8 @@ export default function SongPage() {
   const { user } = useAuth()
   const [song, setSong] = useState(null)
   const [tabs, setTabs] = useState([])
+  const [prevSong, setPrevSong] = useState(null)
+  const [nextSong, setNextSong] = useState(null)
   const [isFavorited, setIsFavorited] = useState(false)
   const [loading, setLoading] = useState(true)
 
@@ -33,6 +35,21 @@ export default function SongPage() {
 
     if (!songData) { setLoading(false); return }
 
+    const [prevQuery, nextQuery] = await Promise.all([
+      supabase.from('songs')
+        .select('title,slug')
+        .eq('is_published', true)
+        .lt('title', songData.title)
+        .order('title', { ascending: false })
+        .limit(1),
+      supabase.from('songs')
+        .select('title,slug')
+        .eq('is_published', true)
+        .gt('title', songData.title)
+        .order('title', { ascending: true })
+        .limit(1),
+    ])
+
     const { data: tabData } = await supabase
       .from('tabs')
       .select('*')
@@ -44,6 +61,8 @@ export default function SongPage() {
 
     setSong(songData)
     setTabs(tabData ?? [])
+    setPrevSong(prevQuery.data?.[0] ?? null)
+    setNextSong(nextQuery.data?.[0] ?? null)
     setLoading(false)
   }
 
@@ -117,6 +136,25 @@ export default function SongPage() {
             )}
           </div>
         </header>
+
+        <div className="song-nav">
+          <button
+            type="button"
+            className="song-nav-btn"
+            disabled={!prevSong}
+            onClick={() => prevSong && navigate(`/song/${prevSong.slug}`)}
+          >
+            ← {prevSong ? prevSong.title : 'Previous'}
+          </button>
+          <button
+            type="button"
+            className="song-nav-btn"
+            disabled={!nextSong}
+            onClick={() => nextSong && navigate(`/song/${nextSong.slug}`)}
+          >
+            {nextSong ? nextSong.title : 'Next'} →
+          </button>
+        </div>
 
         {/* Tab Card */}
         <main className="tab-card card">
