@@ -66,7 +66,7 @@ section { margin-bottom: 48px; }
 /* ── TYPOGRAPHY (Shippori Mincho + DM Sans + Outfit — same stack as reference site) ── */
 .font-title    { font-family: 'Shippori Mincho', 'Times New Roman', serif; font-weight: 400; }
 .font-script   { font-family: 'Allura', cursive; font-weight: 400; }
-.font-tab      { font-family: 'Outfit', sans-serif; font-weight: 500; }
+.font-tab      { font-family: 'Amatic SC', cursive; font-weight: 700; }
 .font-nav      { font-family: 'Outfit', sans-serif; font-weight: 400; letter-spacing: 0.13em; text-transform: uppercase; }
 .font-body     { font-family: 'DM Sans', sans-serif; }
 

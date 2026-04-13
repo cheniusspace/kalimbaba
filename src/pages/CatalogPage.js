@@ -1,12 +1,59 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import SongCard from '../components/SongCard'
 import './CatalogPage.css'
 
+const PLACEHOLDER_SONGS = [
+  'River flows in you',
+  'Canon in D',
+  'Happy birthday',
+  'Twinkle twinkle',
+  'Fur Elise',
+  'Over the rainbow',
+  'A thousand years',
+]
+
+function useTypingPlaceholder(words) {
+  const [placeholder, setPlaceholder] = useState('')
+  const index = useRef(0)
+  const charIndex = useRef(0)
+  const deleting = useRef(false)
+
+  useEffect(() => {
+    let timeout
+    function tick() {
+      const word = words[index.current]
+      if (deleting.current) {
+        charIndex.current--
+        setPlaceholder(word.slice(0, charIndex.current))
+        if (charIndex.current === 0) {
+          deleting.current = false
+          index.current = (index.current + 1) % words.length
+          timeout = setTimeout(tick, 400)
+        } else {
+          timeout = setTimeout(tick, 40)
+        }
+      } else {
+        charIndex.current++
+        setPlaceholder(word.slice(0, charIndex.current))
+        if (charIndex.current === word.length) {
+          deleting.current = true
+          timeout = setTimeout(tick, 1800)
+        } else {
+          timeout = setTimeout(tick, 80)
+        }
+      }
+    }
+    timeout = setTimeout(tick, 600)
+    return () => clearTimeout(timeout)
+  }, [])
+
+  return placeholder
+}
+
 const GENRES = ['all', 'children', 'pop', 'classical', 'folk', 'anime', 'other']
 const DIFFICULTIES = ['all', 'beginner', 'intermediate', 'advanced']
-const AUDIENCES = ['all', 'children', 'adult']
 const SORT_OPTIONS = [
   { value: 'popular', label: 'Most Popular' },
   { value: 'newest', label: 'Newest' },
@@ -15,16 +62,16 @@ const SORT_OPTIONS = [
 
 export default function CatalogPage() {
   const { user } = useAuth()
+  const typingPlaceholder = useTypingPlaceholder(PLACEHOLDER_SONGS)
   const [songs, setSongs] = useState([])
   const [favorites, setFavorites] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [genre, setGenre] = useState('all')
   const [difficulty, setDifficulty] = useState('all')
-  const [audience, setAudience] = useState('all')
   const [sort, setSort] = useState('popular')
 
-  useEffect(() => { fetchSongs() }, [genre, difficulty, audience, sort])
+  useEffect(() => { fetchSongs() }, [genre, difficulty, sort])
   useEffect(() => { if (user) fetchFavorites() }, [user])
 
   async function fetchSongs() {
@@ -32,7 +79,6 @@ export default function CatalogPage() {
     let query = supabase.from('songs').select('*').eq('is_published', true)
     if (genre !== 'all') query = query.eq('genre', genre)
     if (difficulty !== 'all') query = query.eq('difficulty', difficulty)
-    if (audience !== 'all') query = query.eq('audience', audience)
     if (sort === 'popular') query = query.order('play_count', { ascending: false })
     else if (sort === 'newest') query = query.order('created_at', { ascending: false })
     else if (sort === 'az') query = query.order('title', { ascending: true })
@@ -67,35 +113,30 @@ export default function CatalogPage() {
 
   return (
     <div className="catalog-page">
-      <div className="container">
 
-        <section className="catalog-hero">
-          <div>
-            <h1 className="catalog-title font-title">Explore the kalimba catalog</h1>
-            <p className="catalog-description">Search for the perfect song tab, filter by genre, difficulty, or audience, and save favorites for easy access.</p>
-          </div>
-          <div>
-            <p className="catalog-sub">{songs.length} songs available</p>
-          </div>
-        </section>
-
-        <div className="catalog-header">
-          <p className="catalog-sub">A simplified library for kalimba players of every level.</p>
-        </div>
-
-        {/* Filters */}
-        <div className="filters">
+      {/* Hero */}
+      <div className="catalog-hero">
+        <h1 className="hero-title">Kalimba Tabs</h1>
+        <p className="hero-script">Master the thumb piano in minutes.</p>
+        <div className="hero-search-wrap">
           <input
-            className="search-input"
+            className="hero-search"
             type="text"
-            placeholder="Search songs..."
+            placeholder={search ? '' : (typingPlaceholder || 'Search songs...')}
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
+        </div>
+        {!loading && <p className="hero-count">{songs.length} songs available</p>}
+      </div>
+
+      <div className="container">
+
+        {/* Filters */}
+        <div className="filters">
           <div className="filter-row">
             <FilterGroup label="Genre" value={genre} onChange={setGenre} options={GENRES} />
             <FilterGroup label="Level" value={difficulty} onChange={setDifficulty} options={DIFFICULTIES} />
-            <FilterGroup label="For" value={audience} onChange={setAudience} options={AUDIENCES} />
             <select className="sort-select" value={sort} onChange={e => setSort(e.target.value)}>
               {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>

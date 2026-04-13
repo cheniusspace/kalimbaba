@@ -2,56 +2,64 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.84);
-  border-bottom: 1px solid rgba(136, 143, 151, 0.18);
+  background: rgba(255, 255, 255, 0.88);
+  border-bottom: 1px solid var(--border);
   backdrop-filter: blur(16px);
 }
 
 [data-theme="dark"] .navbar {
   background: rgba(24, 28, 31, 0.92);
-  border-bottom-color: rgba(66, 73, 79, 0.24);
 }
 
 .navbar-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 70px;
-  gap: 24px;
+  height: 64px;
+  gap: 16px;
 }
 
+/* Logo */
 .navbar-logo {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.3rem;
+  font-weight: 400;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  line-height: 1.1;
+  color: var(--text-primary);
+  flex-shrink: 0;
 }
 .logo-tran { color: var(--text-secondary); }
-.logo-muse { color: var(--accent); }
+.logo-muse { color: var(--text-muted); }
 
-.navbar-links {
+/* Search expand */
+.navbar-search {
+  flex: 1;
   display: flex;
-  gap: 18px;
   align-items: center;
+  gap: 8px;
 }
 
-.nav-link {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  padding: 10px 14px;
-  border-radius: 999px;
-  transition: background 0.15s, color 0.15s;
-}
-.nav-link:hover {
+.navbar-search-input {
+  flex: 1;
+  padding: 7px 14px;
   background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
   color: var(--text-primary);
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.15s;
 }
+.navbar-search-input:focus { border-color: var(--accent); }
+.navbar-search-input::placeholder { color: var(--text-muted); }
 
+/* Actions */
 .navbar-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .icon-btn {
@@ -60,7 +68,7 @@
   justify-content: center;
   width: 34px;
   height: 34px;
-  border-radius: 6px;
+  border-radius: 8px;
   border: none;
   background: transparent;
   color: var(--text-muted);
@@ -75,23 +83,48 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  margin-left: 4px;
 }
 .user-name {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
-  max-width: 120px;
+  max-width: 100px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+/* Auth buttons */
 .navbar-auth {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-left: 4px;
+}
+
+.navbar-login {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: color 0.15s;
+}
+.navbar-login:hover { color: var(--text-primary); }
+
+.navbar-signup {
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.navbar-signup:hover {
+  background: var(--bg-surface);
+  border-color: var(--accent);
 }
 
 @media (max-width: 600px) {
-  .navbar-links { display: none; }
   .user-name { display: none; }
+  .navbar-search { max-width: 200px; }
 }

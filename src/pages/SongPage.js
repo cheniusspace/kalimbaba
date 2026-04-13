@@ -78,9 +78,8 @@ export default function SongPage() {
 
         {/* Header */}
         <header className="song-header">
-          <h1 className="song-title font-title">{song.title}</h1>
-          <p className="song-script font-script">Kalimba Tab</p>
-          <div className="song-divider" aria-hidden="true" />
+          <h1 className="song-title">{song.title}</h1>
+          <p className="song-script">Kalimba Tab</p>
           <div className="song-meta">
             {song.genre && <span className="tag">{song.genre}</span>}
             {song.difficulty && <span className="tag">{song.difficulty}</span>}
@@ -99,13 +98,13 @@ export default function SongPage() {
         {/* Tab Card */}
         <main className="tab-card card">
           {tabs.map((tab, i) => {
-            const shaded = dark ? i % 2 === 0 : i >= 2 && i % 2 === 0
+            const shaded = i % 2 === 0
             return (
             <div key={tab.id} className={`tab-row ${shaded ? 'shaded' : ''}`}>
               <div className="pairs">
                 {tab.notes.map((n, j) => (
                   <div key={j} className="pair">
-                    <span className="note font-tab">
+                    <span className="note">
                       {n.note}{n.octave && <sup>°</sup>}
                     </span>
                     <span className="syl">{tab.syllables[j]}</span>
