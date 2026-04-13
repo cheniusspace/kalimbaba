@@ -116,6 +116,71 @@
   font-size: 0.9rem;
 }
 
+/* ── Share section ── */
+.share-section {
+  margin-top: 64px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+}
+
+.share-title {
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.share-bios {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.copy-bio {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  user-select: none;
+}
+.copy-bio:hover {
+  border-color: var(--accent);
+  background: var(--bg-surface);
+}
+
+.copy-bio-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.copy-bio-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.copy-bio-icon {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.copy-bio-text {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
 @media (max-width: 640px) {
   .catalog-hero { padding: 48px 24px 40px; }
   .sort-select { margin-left: 0; }

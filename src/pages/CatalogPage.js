@@ -1,4 +1,5 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
+import { Copy, Check } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import SongCard from '../components/SongCard'
@@ -161,7 +162,50 @@ export default function CatalogPage() {
           </div>
         )}
 
+        {/* Share section */}
+        <ShareSection />
+
       </div>
+    </div>
+  )
+}
+
+const BIOS = [
+  { label: 'Short', text: 'Beautiful kalimba tabs for every song you love.\nDiscover music, learn to play & find your sound.\nWeb & mobile app. #Kalimbaba' },
+  { label: 'Minimal', text: 'Your kalimba companion.\nTabs. Learn. Play.\nWeb & mobile app. #Kalimbaba' },
+  { label: 'Hashtags', text: '#Kalimbaba #Kalimba #KalimbaTabs #ThumbPiano #KalimbaMusic\n#LearnKalimba #KalimbaCover #MusicApp #KalimbaPlayer #KalimbaLove' },
+]
+
+function ShareSection() {
+  return (
+    <div className="share-section">
+      <p className="share-title">Share Kalimbaba</p>
+      <div className="share-bios">
+        {BIOS.map(bio => <CopyBio key={bio.label} {...bio} />)}
+      </div>
+    </div>
+  )
+}
+
+function CopyBio({ label, text }) {
+  const [copied, setCopied] = useState(false)
+
+  function handleCopy() {
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="copy-bio" onClick={handleCopy} title="Click to copy">
+      <div className="copy-bio-header">
+        <span className="copy-bio-label">{label}</span>
+        <span className="copy-bio-icon">
+          {copied ? <Check size={13} /> : <Copy size={13} />}
+          {copied ? 'Copied!' : 'Copy'}
+        </span>
+      </div>
+      <p className="copy-bio-text">{text}</p>
     </div>
   )
 }
