@@ -1,47 +1,51 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Mrs+Saint+Delafield&family=DM+Sans:wght@300;400;500&family=Josefin+Sans:wght@300;400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Allura&family=DM+Sans:wght@300;400;500&family=Outfit:wght@400;500;600&family=Shippori+Mincho:wght@400;500;600&display=swap');
 
-/* ── LIGHT THEME ── */
+/* ── LIGHT THEME (aligned with Beyond The Shop Door / Kadence palette) ── */
 :root, [data-theme="light"] {
-  --bg:           #faf9f7;
+  --bg:           #ffffff;
   --bg-card:      #ffffff;
-  --bg-surface:   #f5f2ee;
-  --bg-hover:     #f0ece6;
-  --text-primary: #1a1a1a;
-  --text-secondary:#303030;
-  --text-muted:   #a2a2a2;
-  --accent:       #b0a898;
-  --border:       #e4e0d8;
-  --brand:        #7c6f5e;
-  --brand-hover:  #5e5448;
-  --danger:       #c0392b;
-  --success:      #27ae60;
+  --bg-surface:   #f9f9f9;
+  --bg-hover:     #e9e7e5;
+  --text-primary: #333333;
+  --text-secondary:#404b4e;
+  --text-muted:   #949d9f;
+  --accent:       #949d9f;
+  --border:       #ccc7c6;
+  --brand:        #798487;
+  --brand-hover:  #404b4e;
+  --danger:       #b82105;
+  --success:      #13612e;
 }
 
-/* ── DARK THEME ── */
+/* ── DARK THEME (cool slate, same accent family) ── */
 [data-theme="dark"] {
-  --bg:           #171614;
-  --bg-card:      #1f1e1b;
-  --bg-surface:   #252320;
-  --bg-hover:     #2c2a27;
-  --text-primary: #f0ede8;
-  --text-secondary:#d4d0c8;
-  --text-muted:   #7a7870;
-  --accent:       #6e6457;
-  --border:       #333129;
-  --brand:        #c9b99a;
-  --brand-hover:  #e0cfb5;
-  --danger:       #e74c3c;
-  --success:      #2ecc71;
+  --bg:           #1a1f21;
+  --bg-card:      #23292c;
+  --bg-surface:   #2d3438;
+  --bg-hover:     #353d42;
+  --text-primary: #f2f0ee;
+  --text-secondary:#d4d9dc;
+  --text-muted:   #949d9f;
+  --accent:       #a8b0b3;
+  --border:       #3d464b;
+  --brand:        #c5cbce;
+  --brand-hover:  #e9e7e5;
+  --danger:       #e85d4a;
+  --success:      #5cb878;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  background-color: var(--bg);
+  min-height: 100vh;
+  background: radial-gradient(circle at top center, rgba(212, 217, 220, 0.18), transparent 30%), var(--bg);
   color: var(--text-primary);
   font-family: 'DM Sans', sans-serif;
   font-size: 16px;
-  line-height: 1.6;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.2s, color 0.2s;
 }
 
@@ -49,10 +53,21 @@ a { color: inherit; text-decoration: none; }
 button { cursor: pointer; font-family: inherit; }
 input, select, textarea { font-family: inherit; }
 
-/* ── TYPOGRAPHY ── */
-.font-title    { font-family: 'Cinzel', serif; }
-.font-script   { font-family: 'Mrs Saint Delafield', cursive; }
-.font-tab      { font-family: 'Josefin Sans', sans-serif; }
+main { width: 100%; }
+
+h1, h2, h3, h4, h5, h6 { margin: 0; }
+
+section { margin-bottom: 48px; }
+
+.loading-state, .empty-state {
+  color: var(--text-muted);
+}
+
+/* ── TYPOGRAPHY (Shippori Mincho + DM Sans + Outfit — same stack as reference site) ── */
+.font-title    { font-family: 'Shippori Mincho', 'Times New Roman', serif; font-weight: 400; }
+.font-script   { font-family: 'Allura', cursive; font-weight: 400; }
+.font-tab      { font-family: 'Outfit', sans-serif; font-weight: 500; }
+.font-nav      { font-family: 'Outfit', sans-serif; font-weight: 400; letter-spacing: 0.13em; text-transform: uppercase; }
 .font-body     { font-family: 'DM Sans', sans-serif; }
 
 /* ── UTILITY ── */
@@ -75,22 +90,42 @@ input, select, textarea { font-family: inherit; }
 }
 
 .btn-primary {
-  background: var(--text-primary);
-  color: var(--bg);
+  background: var(--accent);
+  color: #ffffff;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: 0;
 }
-.btn-primary:hover { opacity: 0.85; }
+.btn-primary:hover {
+  background: var(--brand);
+  opacity: 1;
+}
 
 .btn-outline {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-primary);
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: 0;
 }
-.btn-outline:hover { background: var(--bg-surface); }
+.btn-outline:hover { background: var(--bg-hover); color: var(--text-secondary); }
 
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 8px;
+}
+
+[data-theme="light"] .card {
+  border-radius: 0;
+  box-shadow: 0 15px 15px -10px rgba(0, 0, 0, 0.05);
 }
 
 /* ── SCROLLBAR ── */

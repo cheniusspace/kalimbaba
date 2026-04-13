@@ -1,5 +1,5 @@
 -- ============================================================
--- TranMuse — Supabase Database Schema
+-- Kalimbaba — Supabase Database Schema
 -- Run this in your Supabase SQL Editor (supabase.com/dashboard)
 -- ============================================================
 

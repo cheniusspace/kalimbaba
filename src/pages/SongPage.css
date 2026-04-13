@@ -136,6 +136,133 @@
   gap: 6px;
 }
 
+.song-sheet-footer {
+  display: none;
+}
+
+/* ── Light theme: sheet layout (reference) ── */
+[data-theme="light"] .song-page {
+  background: #ffffff;
+  padding: 48px 0 72px;
+}
+
+[data-theme="light"] .song-page .song-title {
+  font-family: 'Shippori Mincho', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(1.75rem, 4.2vw, 2.65rem);
+  letter-spacing: 0.12em;
+  color: #333333;
+}
+
+[data-theme="light"] .song-page .song-script {
+  font-family: 'Allura', cursive;
+  font-size: clamp(2.5rem, 6.5vw, 3.75rem);
+  font-weight: 400;
+  color: #404b4e;
+  margin-top: -0.12em;
+  opacity: 1;
+  line-height: 1.05;
+}
+
+[data-theme="light"] .song-page .song-divider {
+  display: none;
+}
+
+[data-theme="light"] .song-page .song-header {
+  margin-bottom: 52px;
+}
+
+[data-theme="light"] .song-page .song-meta {
+  margin-top: 28px;
+}
+
+[data-theme="light"] .song-page .tag {
+  color: #949d9f;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-family: 'Outfit', sans-serif;
+}
+
+[data-theme="light"] .song-page .fav-btn {
+  border-color: #ccc7c6;
+  color: #798487;
+}
+
+[data-theme="light"] .song-page .tab-card.card {
+  background: #ffffff;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+[data-theme="light"] .song-page .tab-row {
+  padding: 32px 28px 28px;
+  border-bottom: none;
+}
+
+[data-theme="light"] .song-page .tab-row.shaded {
+  background-color: #f9f9f9;
+}
+
+[data-theme="light"] .song-page .note {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: clamp(2rem, 5vw, 3rem);
+  color: #333333;
+}
+
+[data-theme="light"] .song-page .note sup {
+  color: #333333;
+  font-weight: 600;
+}
+
+[data-theme="light"] .song-page .syl {
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(0.8rem, 1.85vw, 0.95rem);
+  font-weight: 400;
+  color: #949d9f;
+  letter-spacing: 0.02em;
+}
+
+[data-theme="light"] .song-page .legend.card {
+  background: transparent;
+  border: none;
+  border-top: 1px solid #ccc7c6;
+  border-radius: 0;
+  box-shadow: none;
+  margin-top: 40px;
+  padding: 20px 8px 8px;
+  justify-content: center;
+}
+
+[data-theme="light"] .song-page .legend-label {
+  color: #999999;
+}
+
+[data-theme="light"] .song-page .legend-item {
+  color: #999999;
+}
+
+[data-theme="light"] .song-page .legend-item .font-tab {
+  color: #000000 !important;
+}
+
+[data-theme="light"] .song-page .song-sheet-footer {
+  display: block;
+  text-align: center;
+  margin-top: 48px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  color: #404b4e;
+  text-transform: uppercase;
+}
+
 @media (max-width: 480px) {
   .tab-row { padding: 20px 16px 18px; }
+  [data-theme="light"] .song-page .tab-row {
+    padding: 24px 16px 22px;
+  }
 }

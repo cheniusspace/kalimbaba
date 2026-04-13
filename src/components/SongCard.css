@@ -1,25 +1,32 @@
 .song-card {
   display: flex;
-  align-items: center;
-  transition: box-shadow 0.15s, border-color 0.15s;
+  flex-direction: column;
+  min-height: 260px;
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
 }
 .song-card:hover {
+  transform: translateY(-3px);
   border-color: var(--accent);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.08);
 }
 
 .song-card-body {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  justify-content: space-between;
   gap: 16px;
-  padding: 16px;
+  padding: 22px;
   flex: 1;
 }
 
 .song-card-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
   background: var(--bg-surface);
   display: flex;
   align-items: center;
@@ -29,37 +36,52 @@
 }
 
 .song-card-title {
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
-  text-transform: uppercase;
-  margin-bottom: 6px;
+  text-transform: none;
+  margin-bottom: 10px;
 }
 
 .song-card-meta {
   display: flex;
-  gap: 8px;
   flex-wrap: wrap;
+  gap: 10px;
 }
 
 .tag {
-  font-size: 0.72rem;
-  font-weight: 400;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  border-radius: 999px;
+  background: var(--bg-surface);
   color: var(--text-muted);
   text-transform: capitalize;
-  letter-spacing: 0.05em;
-}
-.tag + .tag::before {
-  content: '·';
-  margin-right: 8px;
 }
 
 .song-card-plays {
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   color: var(--text-muted);
-  margin-top: 4px;
 }
+
+.song-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 22px 18px;
+}
+
+.song-card-fav {
+  padding: 12px;
+  background: var(--bg-surface);
+  border: none;
+  border-radius: 14px;
+  color: var(--text-muted);
+  transition: color 0.15s, background 0.15s;
+}
+.song-card-fav:hover { background: var(--bg-hover); color: var(--danger); }
+.song-card-fav.active { color: var(--danger); }
 
 .song-card-fav {
   padding: 16px;

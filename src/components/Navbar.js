@@ -19,14 +19,13 @@ export default function Navbar() {
       <div className="container navbar-inner">
 
         {/* Logo */}
-        <Link to="/" className="navbar-logo">
-          <span className="logo-tran">KALIMBA</span>
-          <span className="logo-muse">GO</span>
+        <Link to="/" className="navbar-logo font-title">
+          <span className="logo-tran">Kalimba</span>
+          <span className="logo-muse">baba</span>
         </Link>
 
         {/* Nav links */}
-        <div className="navbar-links">
-          <Link to="/" className="nav-link">Home</Link>
+        <div className="navbar-links font-nav">
           <Link to="/catalog" className="nav-link">Catalog</Link>
         </div>
 

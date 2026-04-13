@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import Navbar from './components/Navbar'
-import HomePage from './pages/HomePage'
 import CatalogPage from './pages/CatalogPage'
 import SongPage from './pages/SongPage'
 import LoginPage from './pages/LoginPage'
@@ -18,7 +17,7 @@ export default function App() {
         <AuthProvider>
           <Navbar />
           <Routes>
-            <Route path="/"           element={<HomePage />} />
+            <Route path="/"           element={<CatalogPage />} />
             <Route path="/catalog"    element={<CatalogPage />} />
             <Route path="/song/:slug" element={<SongPage />} />
             <Route path="/login"      element={<LoginPage />} />

@@ -3,11 +3,13 @@ import { useParams } from 'react-router-dom'
 import { Heart } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import './SongPage.css'
 
 export default function SongPage() {
   const { slug } = useParams()
   const { user } = useAuth()
+  const { dark } = useTheme()
   const [song, setSong] = useState(null)
   const [tabs, setTabs] = useState([])
   const [isFavorited, setIsFavorited] = useState(false)
@@ -78,7 +80,7 @@ export default function SongPage() {
         <header className="song-header">
           <h1 className="song-title font-title">{song.title}</h1>
           <p className="song-script font-script">Kalimba Tab</p>
-          <div className="song-divider" />
+          <div className="song-divider" aria-hidden="true" />
           <div className="song-meta">
             {song.genre && <span className="tag">{song.genre}</span>}
             {song.difficulty && <span className="tag">{song.difficulty}</span>}
@@ -96,8 +98,10 @@ export default function SongPage() {
 
         {/* Tab Card */}
         <main className="tab-card card">
-          {tabs.map((tab, i) => (
-            <div key={tab.id} className={`tab-row ${i % 2 === 0 ? 'shaded' : ''}`}>
+          {tabs.map((tab, i) => {
+            const shaded = dark ? i % 2 === 0 : i >= 2 && i % 2 === 0
+            return (
+            <div key={tab.id} className={`tab-row ${shaded ? 'shaded' : ''}`}>
               <div className="pairs">
                 {tab.notes.map((n, j) => (
                   <div key={j} className="pair">
@@ -109,16 +113,19 @@ export default function SongPage() {
                 ))}
               </div>
             </div>
-          ))}
+            )
+          })}
         </main>
 
         {/* Legend */}
         <div className="legend card">
           <span className="legend-label">Note</span>
-          <span className="legend-item"><span className="font-tab" style={{fontSize:'1rem',color:'#303030'}}>5</span> = lower octave tine</span>
-          <span className="legend-item"><span className="font-tab" style={{fontSize:'1rem',color:'#303030'}}>5<sup style={{fontSize:'0.52em'}}>°</sup></span> = upper octave tine</span>
+          <span className="legend-item"><span className="font-tab" style={{fontSize:'1rem',color:'#333333'}}>5</span> = lower octave tine</span>
+          <span className="legend-item"><span className="font-tab" style={{fontSize:'1rem',color:'#333333'}}>5<sup style={{fontSize:'0.52em'}}>°</sup></span> = upper octave tine</span>
           <span className="legend-item">Numbers = tine positions on a 17-key kalimba in C</span>
         </div>
+
+        <footer className="song-sheet-footer">KALIMBABA</footer>
 
       </div>
     </div>

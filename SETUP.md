@@ -1,4 +1,4 @@
-# Kalimba Go — Setup Guide
+# Kalimbaba — Setup Guide
 
 ## What's been built
 - React app with full routing
@@ -16,7 +16,7 @@
 
 1. Go to https://supabase.com and sign up (free)
 2. Click **New Project**
-3. Name it `tranmuse`, set a database password, choose a region
+3. Name it `kalimbaba`, set a database password, choose a region
 4. Wait ~2 minutes for it to provision
 
 ---
@@ -114,7 +114,7 @@ Add your environment variables in Vercel → Project → Settings → Environmen
 
 When you're ready to build the mobile app:
 
-1. `npx create-expo-app KalimbaGoMobile`
+1. `npx create-expo-app KalimbabaMobile`
 2. Install `@supabase/supabase-js` — same client, same database
 3. Reuse all your data fetching logic from `src/lib/supabase.js`
 4. Replace HTML/CSS components with React Native equivalents
@@ -126,7 +126,7 @@ Your Supabase backend works identically for web and mobile.
 ## Project Structure
 
 ```
-tranmuse/
+kalimbaba/
 ├── public/
 │   └── index.html
 ├── src/

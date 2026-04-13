@@ -27,7 +27,7 @@ export default function SignupPage() {
       <div className="auth-card card">
         <div className="auth-header">
           <p className="auth-script font-script">Join us</p>
-          <h1 className="auth-title font-title">TRANMUSE</h1>
+          <h1 className="auth-title font-title">KALIMBABA</h1>
           <div className="auth-divider" />
         </div>
 

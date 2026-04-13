@@ -69,9 +69,18 @@ export default function CatalogPage() {
     <div className="catalog-page">
       <div className="container">
 
+        <section className="catalog-hero">
+          <div>
+            <h1 className="catalog-title font-title">Explore the kalimba catalog</h1>
+            <p className="catalog-description">Search for the perfect song tab, filter by genre, difficulty, or audience, and save favorites for easy access.</p>
+          </div>
+          <div>
+            <p className="catalog-sub">{songs.length} songs available</p>
+          </div>
+        </section>
+
         <div className="catalog-header">
-          <h1 className="catalog-title font-title">Catalog</h1>
-          <p className="catalog-sub">{songs.length} songs available</p>
+          <p className="catalog-sub">A simplified library for kalimba players of every level.</p>
         </div>
 
         {/* Filters */}
