@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { Heart } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
-import { useTheme } from '../context/ThemeContext'
 import './SongPage.css'
 
 export default function SongPage() {
   const { slug } = useParams()
+  const navigate = useNavigate()
   const { user } = useAuth()
-  const { dark } = useTheme()
   const [song, setSong] = useState(null)
   const [tabs, setTabs] = useState([])
   const [isFavorited, setIsFavorited] = useState(false)
@@ -81,8 +80,8 @@ export default function SongPage() {
           <h1 className="song-title">{song.title}</h1>
           <p className="song-script">Kalimba Tab</p>
           <div className="song-meta">
-            {song.genre && <span className="tag">{song.genre}</span>}
-            {song.difficulty && <span className="tag">{song.difficulty}</span>}
+            {song.genre && <span className="tag tag-link" onClick={() => navigate(`/?genre=${song.genre}`)}>{song.genre}</span>}
+            {song.difficulty && <span className="tag tag-link" onClick={() => navigate(`/?difficulty=${song.difficulty}`)}>{song.difficulty}</span>}
             {user && (
               <button
                 className={`fav-btn ${isFavorited ? 'active' : ''}`}
@@ -105,7 +104,7 @@ export default function SongPage() {
                 {tab.notes.map((n, j) => (
                   <div key={j} className="pair">
                     <span className="note">
-                      {n.note}{n.octave && <sup>°</sup>}
+                      {n.note}{n.octave === 2 ? <sup>°°</sup> : (n.octave === 1 || n.octave === true) ? <sup>°</sup> : null}
                     </span>
                     <span className="syl">{tab.syllables[j]}</span>
                   </div>
@@ -116,15 +115,6 @@ export default function SongPage() {
           })}
         </main>
 
-        {/* Legend */}
-        <div className="legend card">
-          <span className="legend-label">Note</span>
-          <span className="legend-item"><span className="font-tab" style={{fontSize:'1rem',color:'#333333'}}>5</span> = lower octave tine</span>
-          <span className="legend-item"><span className="font-tab" style={{fontSize:'1rem',color:'#333333'}}>5<sup style={{fontSize:'0.52em'}}>°</sup></span> = upper octave tine</span>
-          <span className="legend-item">Numbers = tine positions on a 17-key kalimba in C</span>
-        </div>
-
-        <footer className="song-sheet-footer">KALIMBABA</footer>
 
       </div>
     </div>

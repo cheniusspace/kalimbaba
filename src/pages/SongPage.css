@@ -5,9 +5,8 @@
 /* ── Header ── */
 .song-header {
   text-align: center;
-  padding: 56px 24px 40px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 40px;
+  padding: 56px 24px 20px;
+  margin-bottom: 20px;
 }
 
 .song-title {
@@ -36,6 +35,16 @@
   justify-content: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.tag-link {
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.tag-link:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--accent);
 }
 
 .tag {

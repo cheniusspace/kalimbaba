@@ -44,7 +44,10 @@ export default function AdminPage() {
     const { data } = await supabase.from('tabs').select('*').eq('song_id', song.id).order('line_order')
     setTabs(data?.map(t => ({
       ...t,
-      raw: t.notes.map((n, i) => `${n.note}${n.octave ? '°' : ''}:${t.syllables[i] ?? ''}`).join(' | ')
+      raw: t.notes.map((n, i) => {
+        const oct = n.octave === 2 ? '°°' : n.octave ? '°' : ''
+        return `${n.note}${oct}:${t.syllables[i] ?? ''}`
+      }).join(' | ')
     })) ?? [])
     setView('edit')
   }
@@ -72,16 +75,18 @@ export default function AdminPage() {
     setTabs(prev => prev.map((t, idx) => idx === i ? { ...t, raw: value } : t))
   }
 
-  // Parse raw string like "1°:Three | 1°:lit- | 3°:tle | 5:kit-"
+  // Parse raw string like "1°:Three | 1°°:high | 5:word"
   function parseRaw(raw) {
     const pairs = raw.split('|').map(s => s.trim()).filter(Boolean)
     const notes = [], syllables = []
     for (const pair of pairs) {
-      const [noteStr, syl] = pair.split(':')
-      const note = noteStr?.trim().replace('°', '')
-      const octave = noteStr?.includes('°')
-      notes.push({ note: note ?? '', octave: !!octave })
-      syllables.push(syl?.trim() ?? '')
+      const colonIdx = pair.indexOf(':')
+      const noteStr = colonIdx >= 0 ? pair.slice(0, colonIdx).trim() : pair.trim()
+      const syl = colonIdx >= 0 ? pair.slice(colonIdx + 1).trim() : ''
+      const octave = (noteStr.match(/°/g) || []).length
+      const note = noteStr.replace(/°/g, '')
+      notes.push({ note, octave })
+      syllables.push(syl)
     }
     return { notes, syllables }
   }
