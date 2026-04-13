@@ -37,6 +37,7 @@ export default function Navbar() {
 
         {/* Logo */}
         <Link to="/" className="navbar-logo">
+          <img src="/logo.svg" alt="Kalimbaba" className="navbar-logo-img" />
           <span className="logo-tran">Kalim</span><span className="logo-muse">baba</span>
         </Link>
 
