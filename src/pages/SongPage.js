@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Heart } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import SEO from '../components/SEO'
 import './SongPage.css'
 
 export default function SongPage() {
@@ -74,6 +75,12 @@ export default function SongPage() {
   return (
     <div className="song-page">
       <div className="container song-inner">
+
+        <SEO
+          title={`${song.title} — Kalimba Tab`}
+          description={song.description || `Learn ${song.title} on kalimba. Free number-note tab for ${song.difficulty ?? 'all'} levels.`}
+          canonicalPath={`/song/${song.slug}`}
+        />
 
         {/* Header */}
         <header className="song-header">

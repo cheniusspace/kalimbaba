@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Keep admin and auth pages out of search indexes
+Disallow: /admin
+Disallow: /login
+Disallow: /signup
+Disallow: /favorites
+
+Sitemap: https://kalimbaba.com/sitemap.xml

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import SEO from '../components/SEO'
 import './AuthPage.css'
 
 export default function SignupPage() {
@@ -24,6 +25,11 @@ export default function SignupPage() {
 
   return (
     <div className="auth-page">
+      <SEO
+        title="Create Account"
+        description="Join Kalimbaba for free. Save your favourite tabs and start learning kalimba today."
+        canonicalPath="/signup"
+      />
       <div className="auth-card card">
         <div className="auth-header">
           <p className="auth-script font-script">Join us</p>

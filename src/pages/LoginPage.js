@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import SEO from '../components/SEO'
 import './AuthPage.css'
 
 export default function LoginPage() {
@@ -23,6 +24,11 @@ export default function LoginPage() {
 
   return (
     <div className="auth-page">
+      <SEO
+        title="Sign In"
+        description="Sign in to Kalimbaba to save your favourite kalimba tabs and track your progress."
+        canonicalPath="/login"
+      />
       <div className="auth-card card">
         <div className="auth-header">
           <p className="auth-script font-script">Welcome back</p>

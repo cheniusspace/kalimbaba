@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import SongCard from '../components/SongCard'
+import SEO from '../components/SEO'
 import './FavoritesPage.css'
 
 export default function FavoritesPage() {
@@ -28,6 +29,11 @@ export default function FavoritesPage() {
 
   return (
     <div className="favorites-page">
+      <SEO
+        title="My Favorites"
+        description="Your saved kalimba tabs in one place."
+        canonicalPath="/favorites"
+      />
       <div className="container">
         <div className="favorites-header">
           <h1 className="favorites-title">My Favorites</h1>

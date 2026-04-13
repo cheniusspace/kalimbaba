@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import SongCard from '../components/SongCard'
+import SEO from '../components/SEO'
 import './CatalogPage.css'
 
 const PLACEHOLDER_SONGS = [
@@ -113,6 +114,11 @@ export default function CatalogPage() {
 
   return (
     <div className="catalog-page">
+      <SEO
+        title="Free Kalimba Tabs — Learn Thumb Piano"
+        description="Browse free kalimba tabs for all levels. Search by song, genre, or difficulty and start playing your favourite songs today."
+        canonicalPath="/"
+      />
 
       {/* Hero */}
       <div className="catalog-hero">
