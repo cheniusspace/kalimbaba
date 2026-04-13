@@ -33,6 +33,7 @@ export default function FavoritesPage() {
         title="My Favorites"
         description="Your saved kalimba tabs in one place."
         canonicalPath="/favorites"
+        noIndex
       />
       <div className="container">
         <div className="favorites-header">

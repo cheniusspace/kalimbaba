@@ -9,6 +9,8 @@
     <title>Kalimbaba — Free Kalimba Tabs</title>
     <meta name="description" content="Free kalimba tabs for beginners and beyond. Learn your favourite songs on the thumb piano with Kalimbaba's easy number-note tabs." />
     <meta name="keywords" content="kalimba tabs, free kalimba sheet music, thumb piano tabs, kalimba numbers, beginner kalimba songs, learn kalimba" />
+    <meta name="author" content="Kalimbaba" />
+    <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://kalimbaba.com/" />
 
     <!-- Open Graph (Facebook, WhatsApp, Discord, etc.) -->
@@ -40,6 +42,40 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Ephesis&family=Instrument+Serif&family=Antic+Didone&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
+    <!-- Base structured data: Organisation + WebSite with SearchAction -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://kalimbaba.com/#organization",
+          "name": "Kalimbaba",
+          "url": "https://kalimbaba.com",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://kalimbaba.com/logo.svg"
+          },
+          "description": "Free kalimba tabs for beginners and beyond."
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://kalimbaba.com/#website",
+          "name": "Kalimbaba",
+          "url": "https://kalimbaba.com",
+          "publisher": { "@id": "https://kalimbaba.com/#organization" },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://kalimbaba.com/?search={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>

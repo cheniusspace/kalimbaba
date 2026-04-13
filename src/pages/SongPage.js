@@ -77,9 +77,26 @@ export default function SongPage() {
       <div className="container song-inner">
 
         <SEO
-          title={`${song.title} — Kalimba Tab`}
-          description={song.description || `Learn ${song.title} on kalimba. Free number-note tab for ${song.difficulty ?? 'all'} levels.`}
+          title={`${song.title} Kalimba Tab`}
+          description={song.description || `Learn how to play ${song.title} on kalimba. Free number-note tab for ${song.difficulty ?? 'all'} levels — no music reading required.`}
           canonicalPath={`/song/${song.slug}`}
+          ogType="music.song"
+          schema={{
+            '@context': 'https://schema.org',
+            '@type': 'MusicComposition',
+            name: song.title,
+            url: `https://kalimbaba.com/song/${song.slug}`,
+            description: song.description || `Free kalimba tab for ${song.title}.`,
+            genre: song.genre ?? undefined,
+            educationalLevel: song.difficulty ?? undefined,
+            learningResourceType: 'Musical score',
+            isAccessibleForFree: true,
+            publisher: {
+              '@type': 'Organization',
+              name: 'Kalimbaba',
+              url: 'https://kalimbaba.com',
+            },
+          }}
         />
 
         {/* Header */}

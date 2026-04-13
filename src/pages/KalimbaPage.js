@@ -35,7 +35,9 @@ export default function KalimbaPage() {
 
   function getCtx() {
     if (!audioCtxRef.current) {
-      audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)()
+      const w = /** @type {any} */ (window)
+      const AudioCtx = w.AudioContext || w.webkitAudioContext
+      audioCtxRef.current = new AudioCtx()
     }
     const ctx = audioCtxRef.current
     if (ctx.state === 'suspended') ctx.resume()
@@ -116,9 +118,29 @@ export default function KalimbaPage() {
   return (
     <div className="kalimba-page">
       <SEO
-        title="Virtual Kalimba — Play Online"
-        description="Play a free virtual 17-key kalimba in your browser. Click any tine to hear the note. No download needed."
+        title="Virtual Kalimba — Play Online Free"
+        description="Play a free virtual 17-key C major kalimba in your browser. Click any tine to hear the note. No app or download needed."
         canonicalPath="/kalimba"
+        schema={{
+          '@context': 'https://schema.org',
+          '@type': 'WebApplication',
+          name: 'Virtual Kalimba',
+          url: 'https://kalimbaba.com/kalimba',
+          description: 'A free interactive 17-key kalimba you can play in your browser.',
+          applicationCategory: 'MusicApplication',
+          operatingSystem: 'Web',
+          isAccessibleForFree: true,
+          offers: {
+            '@type': 'Offer',
+            price: '0',
+            priceCurrency: 'USD',
+          },
+          publisher: {
+            '@type': 'Organization',
+            name: 'Kalimbaba',
+            url: 'https://kalimbaba.com',
+          },
+        }}
       />
       <div className="container">
 

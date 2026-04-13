@@ -112,12 +112,30 @@ export default function CatalogPage() {
     s.title.toLowerCase().includes(search.toLowerCase())
   )
 
+  const catalogSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Kalimba Tabs Catalog',
+    description: 'Browse free kalimba tabs for all levels.',
+    url: 'https://kalimbaba.com/',
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: songs.slice(0, 20).map((song, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: `https://kalimbaba.com/song/${song.slug}`,
+        name: song.title,
+      })),
+    },
+  }
+
   return (
     <div className="catalog-page">
       <SEO
         title="Free Kalimba Tabs — Learn Thumb Piano"
         description="Browse free kalimba tabs for all levels. Search by song, genre, or difficulty and start playing your favourite songs today."
         canonicalPath="/"
+        schema={catalogSchema}
       />
 
       {/* Hero */}

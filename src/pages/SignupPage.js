@@ -29,6 +29,7 @@ export default function SignupPage() {
         title="Create Account"
         description="Join Kalimbaba for free. Save your favourite tabs and start learning kalimba today."
         canonicalPath="/signup"
+        noIndex
       />
       <div className="auth-card card">
         <div className="auth-header">

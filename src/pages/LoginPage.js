@@ -28,6 +28,7 @@ export default function LoginPage() {
         title="Sign In"
         description="Sign in to Kalimbaba to save your favourite kalimba tabs and track your progress."
         canonicalPath="/login"
+        noIndex
       />
       <div className="auth-card card">
         <div className="auth-header">
