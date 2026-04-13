@@ -57,6 +57,12 @@ input, select, textarea { font-family: inherit; }
 
 main { width: 100%; flex: 1; }
 
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 h1, h2, h3, h4, h5, h6 { margin: 0; }
 
 section { margin-bottom: 48px; }
