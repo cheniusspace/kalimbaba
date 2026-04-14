@@ -13,7 +13,9 @@ export default function Footer() {
         </Link>
 
         <nav className="footer-nav">
-          <Link to="/">Browse</Link>
+          <Link to="/">Songs</Link>
+          <Link to="/tools">Tools</Link>
+          <Link to="/resources">Resources</Link>
           <Link to="/contact">Contact</Link>
           <Link to="/favorites">Favorites</Link>
           <Link to="/login">Log in</Link>

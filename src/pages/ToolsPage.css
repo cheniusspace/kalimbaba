@@ -1,0 +1,148 @@
+.hub-page {
+  padding: 48px 0 72px;
+}
+
+.hub-page-inner {
+  max-width: 720px;
+}
+
+.hub-header {
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.hub-kicker {
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.hub-title {
+  font-size: 1.75rem;
+  letter-spacing: 0.1em;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.hub-lead {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  max-width: 34em;
+  margin: 0 auto;
+}
+
+.tools-grid {
+  list-style: none;
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 560px) {
+  .tools-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.tools-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  height: 100%;
+  padding: 28px 24px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+a.tools-card:hover {
+  border-color: var(--accent);
+  background: var(--bg-surface);
+}
+
+.tools-card--soon {
+  opacity: 0.88;
+  cursor: default;
+}
+
+.tools-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 18px;
+  border-radius: 10px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.tools-card-icon--muted {
+  color: var(--text-muted);
+}
+
+.tools-card-title {
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+}
+
+.tools-card-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  flex: 1;
+  margin-bottom: 16px;
+}
+
+.tools-card--soon .tools-card-desc {
+  margin-bottom: 0;
+}
+
+.tools-card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 9px 14px 9px 16px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    color 0.15s,
+    box-shadow 0.15s;
+}
+
+.tools-card-cta-icon {
+  flex-shrink: 0;
+  opacity: 0.85;
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+a.tools-card:hover .tools-card-cta {
+  color: var(--text-primary);
+  border-color: var(--accent);
+  background: var(--bg-hover);
+  box-shadow: 0 2px 8px -4px rgba(0, 0, 0, 0.12);
+}
+
+a.tools-card:hover .tools-card-cta-icon {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+a.tools-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}

@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
@@ -12,6 +12,8 @@ import SignupPage from './pages/SignupPage'
 import FavoritesPage from './pages/FavoritesPage'
 import AdminPage from './pages/AdminPage'
 import KalimbaPage from './pages/KalimbaPage'
+import ToolsPage from './pages/ToolsPage'
+import ResourcesPage from './pages/ResourcesPage'
 import ContactPage from './pages/ContactPage'
 import { trackPageView } from './lib/analytics'
 import './styles/global.css'
@@ -43,7 +45,10 @@ export default function App() {
                 <Route path="/signup"     element={<SignupPage />} />
                 <Route path="/favorites"  element={<FavoritesPage />} />
                 <Route path="/admin"      element={<AdminPage />} />
-                <Route path="/kalimba"    element={<KalimbaPage />} />
+                <Route path="/tools" element={<ToolsPage />} />
+                <Route path="/tools/virtual-kalimba" element={<KalimbaPage />} />
+                <Route path="/kalimba" element={<Navigate to="/tools/virtual-kalimba" replace />} />
+                <Route path="/resources" element={<ResourcesPage />} />
                 <Route path="/contact"    element={<ContactPage />} />
               </Routes>
             </main>

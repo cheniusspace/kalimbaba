@@ -1,13 +1,47 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useReducer, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { Heart, Pencil, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Heart, Pencil, ChevronLeft, ChevronRight, Piano } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import SEO from '../components/SEO'
 import SongCard from '../components/SongCard'
+import KalimbaPage from './KalimbaPage'
+import { tabNotesEqual } from '../lib/tabNotes'
 import './SongPage.css'
 
 const SIMILAR_LIMIT = 6
+
+function lineHasLyrics(tab) {
+  return tab.syllables?.some((s) => s && String(s).trim())
+}
+
+function practiceReducer(state, action) {
+  switch (action.type) {
+    case 'RESET':
+    case 'AGAIN':
+      return { line: 0, note: 0, finished: false }
+    case 'PLAYED_NOTE': {
+      if (state.finished) return state
+      const { tabs: tabList, played } = action
+      if (!tabList?.length) return state
+      const line = tabList[state.line]
+      if (!line?.notes?.length) return state
+      const expected = line.notes[state.note]
+      if (!tabNotesEqual(played, expected)) return state
+      const atEndOfLine = state.note + 1 >= line.notes.length
+      if (atEndOfLine) {
+        const atEndOfSong = state.line + 1 >= tabList.length
+        if (atEndOfSong) {
+          return { ...state, finished: true }
+        }
+        return { line: state.line + 1, note: 0, finished: false }
+      }
+      return { ...state, note: state.note + 1 }
+    }
+    default:
+      return state
+  }
+}
 
 export default function SongPage() {
   const { slug } = useParams()
@@ -21,9 +55,128 @@ export default function SongPage() {
   const [loading, setLoading] = useState(true)
   const [similarSongs, setSimilarSongs] = useState([])
   const [similarFavoriteIds, setSimilarFavoriteIds] = useState([])
+  const [kalimbaOpen, setKalimbaOpen] = useState(false)
+  const [practice, dispatchPractice] = useReducer(practiceReducer, {
+    line: 0,
+    note: 0,
+    finished: false,
+  })
+
+  const handlePracticeNote = useCallback((played) => {
+    dispatchPractice({ type: 'PLAYED_NOTE', tabs, played })
+  }, [tabs])
 
   useEffect(() => {
-    fetchSong()
+    if (kalimbaOpen) dispatchPractice({ type: 'RESET' })
+  }, [kalimbaOpen])
+
+  useEffect(() => {
+    dispatchPractice({ type: 'RESET' })
+  }, [slug])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadSong() {
+      setLoading(true)
+      setSimilarSongs([])
+      setSimilarFavoriteIds([])
+
+      try {
+      const { data: songData, error: songErr } = await supabase
+        .from('songs')
+        .select('*')
+        .eq('slug', slug)
+        .eq('is_published', true)
+        .single()
+
+      if (cancelled) return
+      if (songErr || !songData) {
+        setSong(null)
+        setTabs([])
+        setPrevSong(null)
+        setNextSong(null)
+        return
+      }
+
+      const [prevQuery, nextQuery] = await Promise.all([
+        supabase.from('songs')
+          .select('title,slug')
+          .eq('is_published', true)
+          .lt('title', songData.title)
+          .order('title', { ascending: false })
+          .limit(1),
+        supabase.from('songs')
+          .select('title,slug')
+          .eq('is_published', true)
+          .gt('title', songData.title)
+          .order('title', { ascending: true })
+          .limit(1),
+      ])
+
+      if (cancelled) return
+
+      let prevRow = prevQuery.data?.[0] ?? null
+      let nextRow = nextQuery.data?.[0] ?? null
+
+      if (!nextRow) {
+        const { data } = await supabase
+          .from('songs')
+          .select('title,slug')
+          .eq('is_published', true)
+          .neq('id', songData.id)
+          .order('title', { ascending: true })
+          .limit(1)
+        if (cancelled) return
+        nextRow = data?.[0] ?? null
+      }
+      if (!prevRow) {
+        const { data } = await supabase
+          .from('songs')
+          .select('title,slug')
+          .eq('is_published', true)
+          .neq('id', songData.id)
+          .order('title', { ascending: false })
+          .limit(1)
+        if (cancelled) return
+        prevRow = data?.[0] ?? null
+      }
+
+      const { data: tabData } = await supabase
+        .from('tabs')
+        .select('*')
+        .eq('song_id', songData.id)
+        .order('line_order', { ascending: true })
+
+      if (cancelled) return
+
+      await supabase
+        .from('songs')
+        .update({ play_count: (songData.play_count ?? 0) + 1 })
+        .eq('id', songData.id)
+
+      if (cancelled) return
+
+      setSong(songData)
+      setTabs(tabData ?? [])
+      setPrevSong(prevRow)
+      setNextSong(nextRow)
+      } catch (e) {
+        if (!cancelled) {
+          setSong(null)
+          setTabs([])
+          setPrevSong(null)
+          setNextSong(null)
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    loadSong()
+    return () => {
+      cancelled = true
+    }
   }, [slug])
 
   useEffect(() => {
@@ -84,74 +237,6 @@ export default function SongPage() {
     return () => { cancelled = true }
   }, [song?.id, song?.genre, user?.id])
 
-  async function fetchSong() {
-    setSimilarSongs([])
-    setSimilarFavoriteIds([])
-
-    const { data: songData } = await supabase
-      .from('songs')
-      .select('*')
-      .eq('slug', slug)
-      .eq('is_published', true)
-      .single()
-
-    if (!songData) { setLoading(false); return }
-
-    const [prevQuery, nextQuery] = await Promise.all([
-      supabase.from('songs')
-        .select('title,slug')
-        .eq('is_published', true)
-        .lt('title', songData.title)
-        .order('title', { ascending: false })
-        .limit(1),
-      supabase.from('songs')
-        .select('title,slug')
-        .eq('is_published', true)
-        .gt('title', songData.title)
-        .order('title', { ascending: true })
-        .limit(1),
-    ])
-
-    let prevRow = prevQuery.data?.[0] ?? null
-    let nextRow = nextQuery.data?.[0] ?? null
-
-    if (!nextRow) {
-      const { data } = await supabase
-        .from('songs')
-        .select('title,slug')
-        .eq('is_published', true)
-        .neq('id', songData.id)
-        .order('title', { ascending: true })
-        .limit(1)
-      nextRow = data?.[0] ?? null
-    }
-    if (!prevRow) {
-      const { data } = await supabase
-        .from('songs')
-        .select('title,slug')
-        .eq('is_published', true)
-        .neq('id', songData.id)
-        .order('title', { ascending: false })
-        .limit(1)
-      prevRow = data?.[0] ?? null
-    }
-
-    const { data: tabData } = await supabase
-      .from('tabs')
-      .select('*')
-      .eq('song_id', songData.id)
-      .order('line_order', { ascending: true })
-
-    // Increment play count
-    await supabase.from('songs').update({ play_count: (songData.play_count ?? 0) + 1 }).eq('id', songData.id)
-
-    setSong(songData)
-    setTabs(tabData ?? [])
-    setPrevSong(prevRow)
-    setNextSong(nextRow)
-    setLoading(false)
-  }
-
   async function checkFavorite() {
     const { data } = await supabase
       .from('favorites')
@@ -190,9 +275,9 @@ export default function SongPage() {
   if (!song) return <div className="song-loading">Song not found.</div>
 
   return (
-    <div className="song-page">
+    <div className={`song-page${kalimbaOpen ? ' song-page--kalimba' : ''}`}>
       <div className="container song-inner">
-
+        <div className="song-main">
         <SEO
           title={`${song.title} Kalimba Tab`}
           description={song.description || `Learn how to play ${song.title} on kalimba. Free number-note tab for ${song.difficulty ?? 'all'} levels — no music reading required.`}
@@ -238,6 +323,18 @@ export default function SongPage() {
                 <Pencil size={14} /> Edit
               </Link>
             )}
+            <button
+              type="button"
+              className={`song-kalimba-toggle${kalimbaOpen ? ' song-kalimba-toggle--on' : ''}`}
+              aria-pressed={kalimbaOpen}
+              aria-expanded={kalimbaOpen}
+              aria-controls="song-kalimba-panel"
+              id="song-kalimba-toggle"
+              onClick={() => setKalimbaOpen((v) => !v)}
+            >
+              <Piano size={15} strokeWidth={1.75} aria-hidden />
+              Virtual kalimba practice
+            </button>
           </div>
         </header>
 
@@ -276,10 +373,93 @@ export default function SongPage() {
           </button>
         </nav>
 
-        {/* Tab Card: pair short lines; else split one short line into 2 cols from md up */}
-        {(() => {
+        {/* Tab Card: with virtual kalimba, one line at a time; else full layout */}
+        {kalimbaOpen && tabs.length > 0 ? (
+          <>
+            <div className="song-practice-bar card">
+              <div className="song-practice-bar-inner">
+                <p className="song-practice-bar-text font-nav">
+                  {practice.finished ? (
+                    <>You played every line of this tab.</>
+                  ) : (
+                    <>
+                      Line {practice.line + 1} of {tabs.length}
+                      {' · '}
+                      Note {practice.note + 1} of {tabs[practice.line]?.notes?.length ?? 0}
+                      <span className="song-practice-bar-hint"> — match the highlighted note on the kalimba</span>
+                    </>
+                  )}
+                </p>
+                {practice.finished ? (
+                  <button
+                    type="button"
+                    className="song-practice-again btn btn-outline"
+                    onClick={() => dispatchPractice({ type: 'AGAIN' })}
+                  >
+                    Practice again
+                  </button>
+                ) : null}
+              </div>
+            </div>
+            {!practice.finished ? (
+              <main className="tab-card card tab-card--practice">
+                {(() => {
+                  const tab = tabs[practice.line]
+                  if (!tab) return null
+                  const shade = practice.line % 2 === 0 ? 'shaded' : ''
+                  const hl = practice.note
+                  if (lineHasLyrics(tab)) {
+                    return (
+                      <div className={`tab-row ${shade}`}>
+                        <div className="pairs">
+                          {tab.notes.map((n, j) => (
+                            <div
+                              key={j}
+                              className={`pair${j === hl ? ' pair--practice-next' : ''}`}
+                            >
+                              <span className="note">
+                                {n.note}
+                                {n.octave === 2 ? (
+                                  <sup>°°</sup>
+                                ) : n.octave === 1 || n.octave === true ? (
+                                  <sup>°</sup>
+                                ) : null}
+                              </span>
+                              <span className="syl">{tab.syllables[j]}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  }
+                  return (
+                    <div className={`tab-row ${shade}`}>
+                      <div className="pairs">
+                        {tab.notes.map((n, j) => (
+                          <div
+                            key={j}
+                            className={`pair${j === hl ? ' pair--practice-next' : ''}`}
+                          >
+                            <span className="note">
+                              {n.note}
+                              {n.octave === 2 ? (
+                                <sup>°°</sup>
+                              ) : n.octave === 1 || n.octave === true ? (
+                                <sup>°</sup>
+                              ) : null}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
+              </main>
+            ) : null}
+          </>
+        ) : (
+        (() => {
           const SHORT_NOTES = 8
-          const lineHasLyrics = tab => tab.syllables?.some(s => s && String(s).trim())
           const lineIsShort = tab => tab.notes.length <= SHORT_NOTES
           const lineCompact = tab => !lineHasLyrics(tab) && lineIsShort(tab)
 
@@ -350,7 +530,18 @@ export default function SongPage() {
           }
 
           return <main className="tab-card card">{rows}</main>
-        })()}
+        })()
+        )}
+
+        {kalimbaOpen ? (
+          <div
+            className="song-kalimba-below-tab card"
+            id="song-kalimba-panel"
+            aria-label="Virtual kalimba practice"
+          >
+            <KalimbaPage embedded onNotePlayed={handlePracticeNote} />
+          </div>
+        ) : null}
 
         {song.description && (
           <section className="song-description">
@@ -405,6 +596,7 @@ export default function SongPage() {
           </section>
         )}
 
+        </div>
       </div>
     </div>
   )

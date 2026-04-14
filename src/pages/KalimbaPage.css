@@ -6,6 +6,74 @@
   padding: 2.5rem 1.25rem 3rem;
 }
 
+.kalimba-page--embedded {
+  min-height: 0;
+  padding: 0;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+.kalimba-embed-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  container-type: inline-size;
+  container-name: kalimba-col;
+}
+
+.kalimba-header-embed-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-bottom: 6px;
+  text-align: left;
+}
+
+.kalimba-title-embed {
+  font-size: clamp(0.85rem, 3.5cqi, 1.05rem);
+  letter-spacing: 0.08em;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.kalimba-header-embed-actions {
+  flex-shrink: 0;
+}
+
+.kalimba-embed-open-full {
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.kalimba-embed-open-full:hover {
+  color: var(--text-primary);
+}
+
+.kalimba-page--embedded .kalimba-caption.kalimba-caption--embed {
+  font-size: clamp(0.72rem, 3cqi, 0.85rem);
+  margin-top: 0.25rem;
+}
+
+.kalimba-wrap[data-embedded='true'] .kalimba {
+  padding: 0.4rem 0.4rem 0.5rem;
+}
+
+.kalimba-wrap[data-embedded='true'] .kalimba-header {
+  margin-bottom: 0.35rem;
+}
+
 .kalimba-page .container {
   display: flex;
   flex-direction: column;
@@ -44,6 +112,37 @@
   padding: 0 0.5rem;
 }
 
+.kalimba-breadcrumb {
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 10px;
+  line-height: 1.3;
+}
+
+.kalimba-breadcrumb a {
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-decoration-color: rgba(148, 157, 159, 0.4);
+  text-underline-offset: 2px;
+}
+
+.kalimba-breadcrumb a:hover {
+  color: var(--text-primary);
+  text-decoration-color: var(--accent);
+}
+
+.kalimba-breadcrumb-sep {
+  margin: 0 0.35em;
+  opacity: 0.65;
+}
+
+.kalimba-wrap[data-compact] .kalimba-breadcrumb {
+  font-size: clamp(0.58rem, 2.8cqi, 0.65rem);
+  margin-bottom: 6px;
+}
+
 .kalimba-wrap[data-compact] .kalimba-header {
   margin: 0 0 0.5rem;
   padding: 0 min(0.35rem, 2cqi);
@@ -61,15 +160,16 @@
 }
 
 .kalimba-sub {
-  font-size: clamp(0.95rem, 2.4vw, 1.2rem);
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(0.78rem, 1.85vw, 0.92rem);
   color: var(--text-muted);
   opacity: 0.9;
   margin: 0;
-  line-height: 1.25;
+  line-height: 1.35;
 }
 
 .kalimba-wrap[data-compact] .kalimba-sub {
-  font-size: clamp(0.82rem, 4.2cqi, 1.08rem);
+  font-size: clamp(0.72rem, 3.4cqi, 0.88rem);
 }
 
 .kalimba-settings-notation {
@@ -270,6 +370,24 @@
   gap: 0.5rem;
 }
 
+.kalimba-kbd-settings-save-default {
+  padding: 0.35rem 0.65rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.kalimba-kbd-settings-save-default:hover {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
 .kalimba-kbd-settings-reset {
   padding: 0.35rem 0.65rem;
   font-family: 'Outfit', sans-serif;
@@ -286,6 +404,24 @@
 .kalimba-kbd-settings-reset:hover {
   border-color: var(--accent);
   background: var(--bg-hover);
+}
+
+.kalimba-kbd-settings-clear-default {
+  padding: 0.35rem 0.5rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.kalimba-kbd-settings-clear-default:hover {
+  color: var(--text-secondary);
 }
 
 .kalimba-kbd-tutorial {
@@ -394,7 +530,7 @@
   border-radius: clamp(18px, 4vw, 28px);
   padding: 1rem 1rem 1rem;
   width: 100%;
-  max-width: min(680px, 100%);
+  max-width: min(740px, 100%);
   box-shadow: 0 12px 32px -20px rgba(0, 0, 0, 0.15);
   transition: background-color 0.2s, border-color 0.2s;
   display: flex;
@@ -413,11 +549,11 @@
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  gap: clamp(2px, 0.65vw, 5px);
+  gap: clamp(3px, 0.75vw, 6px);
   width: 100%;
   box-sizing: border-box;
   padding: 0.35rem 0.35rem 0.65rem;
-  min-height: 480px;
+  min-height: 520px;
 }
 
 .kalimba-wrap[data-compact] .kalimba-keys {
@@ -428,8 +564,8 @@
 }
 
 .tine {
-  width: clamp(18px, 3.8vw, 28px);
-  min-width: 18px;
+  width: clamp(20px, 4.1vw, 31px);
+  min-width: 20px;
   flex: 0 0 auto;
   background: var(--bg-surface);
   border: 1px solid var(--border);
@@ -438,7 +574,7 @@
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 4px 2px 36px;
+  padding: 4px 2px 38px;
   box-sizing: border-box;
   cursor: pointer;
   transition: background 0.12s, transform 0.08s, border-color 0.12s, color 0.12s;
@@ -495,15 +631,16 @@
 .tine-kbd {
   flex-shrink: 0;
   align-self: center;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: clamp(0.58rem, 1.85vw, 0.8rem);
-  font-weight: 700;
+  font-family: 'DM Sans', 'Outfit', sans-serif;
+  font-size: clamp(0.62rem, 1.9vw, 0.86rem);
+  font-weight: 600;
   line-height: 1;
   color: var(--text-muted);
   opacity: 0.95;
   pointer-events: none;
   user-select: none;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
 }
 
 button.tine-kbd--square {
@@ -516,13 +653,14 @@ button.tine-kbd--square {
   border: 1px dashed var(--accent);
   border-radius: 5px;
   background: var(--bg-card);
-  font: inherit;
-  font-size: clamp(0.58rem, 1.85vw, 0.8rem);
-  font-weight: 700;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: clamp(0.62rem, 1.9vw, 0.86rem);
+  font-weight: 600;
+  font-family: 'DM Sans', 'Outfit', sans-serif;
+  line-height: 1;
   color: var(--text-muted);
   opacity: 0.95;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
@@ -556,15 +694,15 @@ button.tine-kbd--square-listening {
 
 .kalimba-wrap[data-compact] .tine-kbd,
 .kalimba-wrap[data-compact] button.tine-kbd--square {
-  font-size: clamp(0.52rem, 4cqi, 0.72rem);
+  font-size: clamp(0.56rem, 4.2cqi, 0.76rem);
 }
 
 .kalimba-wrap[data-compact] .tine-theory__sol {
-  font-size: clamp(0.4rem, 3.2cqi, 0.52rem);
+  font-size: clamp(0.46rem, 3.6cqi, 0.6rem);
 }
 
 .kalimba-wrap[data-compact] .tine-theory__letter {
-  font-size: clamp(0.44rem, 3.5cqi, 0.58rem);
+  font-size: clamp(0.5rem, 3.9cqi, 0.66rem);
 }
 
 .kalimba-wrap[data-compact] .tine-theory__deg {
@@ -575,8 +713,8 @@ button.tine-kbd--square-listening {
   width: auto;
   flex: 1 1 0;
   min-width: 0;
-  max-width: 36px;
-  padding: 4px 1px clamp(18px, 5.5cqi, 30px);
+  max-width: 40px;
+  padding: 4px 1px clamp(18px, 5.5cqi, 32px);
 }
 
 .tine:hover {
@@ -608,7 +746,6 @@ button.tine-kbd--square-listening {
 
 .kalimba-caption {
   margin: 0.35rem 0 0;
-  font-family: 'Outfit', sans-serif;
   font-size: 0.72rem;
   font-weight: 500;
   letter-spacing: 0.14em;
@@ -617,10 +754,24 @@ button.tine-kbd--square-listening {
   text-align: center;
 }
 
+.kalimba-caption.font-script {
+  font-family: 'Ephesis', cursive;
+  font-weight: 400;
+  font-size: clamp(0.82rem, 1.9vw, 0.98rem);
+  letter-spacing: 0.05em;
+  text-transform: none;
+  font-variant: normal;
+}
+
 .kalimba-wrap[data-compact] .kalimba-caption {
   font-size: 0.62rem;
   letter-spacing: 0.1em;
   margin-top: 0.25rem;
+}
+
+.kalimba-wrap[data-compact] .kalimba-caption.font-script {
+  font-size: clamp(0.74rem, 3cqi, 0.9rem);
+  letter-spacing: 0.04em;
 }
 
 /* When the main column is narrow but JS has not run yet, match compact layout */
@@ -641,8 +792,8 @@ button.tine-kbd--square-listening {
     width: auto;
     flex: 1 1 0;
     min-width: 0;
-    max-width: 36px;
-    padding-bottom: clamp(20px, 5.5cqi, 34px);
+    max-width: 40px;
+    padding-bottom: clamp(20px, 5.5cqi, 36px);
   }
 
   .kalimba-wrap:not([data-compact]) .kalimba-header {
@@ -655,7 +806,7 @@ button.tine-kbd--square-listening {
   }
 
   .kalimba-wrap:not([data-compact]) .kalimba-sub {
-    font-size: clamp(0.82rem, 4.2cqi, 1.08rem);
+    font-size: clamp(0.72rem, 3.4cqi, 0.88rem);
   }
 
   .kalimba-wrap:not([data-compact]) .kalimba-caption {
@@ -664,16 +815,21 @@ button.tine-kbd--square-listening {
     margin-top: 0.25rem;
   }
 
+  .kalimba-wrap:not([data-compact]) .kalimba-caption.font-script {
+    font-size: clamp(0.74rem, 3cqi, 0.9rem);
+    text-transform: none;
+  }
+
   .kalimba-wrap:not([data-compact]) .tine-kbd {
-    font-size: clamp(0.52rem, 4cqi, 0.72rem);
+    font-size: clamp(0.56rem, 4.2cqi, 0.76rem);
   }
 
   .kalimba-wrap:not([data-compact]) .tine-theory__sol {
-    font-size: clamp(0.4rem, 3.2cqi, 0.52rem);
+    font-size: clamp(0.46rem, 3.6cqi, 0.6rem);
   }
 
   .kalimba-wrap:not([data-compact]) .tine-theory__letter {
-    font-size: clamp(0.44rem, 3.5cqi, 0.58rem);
+    font-size: clamp(0.5rem, 3.9cqi, 0.66rem);
   }
 
   .kalimba-wrap:not([data-compact]) .tine-theory__deg {
@@ -684,4 +840,11 @@ button.tine-kbd--square-listening {
     padding: 0.65rem 0.5rem 0.75rem;
   }
 
+}
+
+/* Explicit stacks: global.css sets `button { font-family: inherit }`, which can mask local rules. */
+.tine-kbd.font-body,
+button.tine-kbd--square.font-body {
+  font-family: 'DM Sans', 'Outfit', sans-serif;
+  font-variant-numeric: tabular-nums;
 }

@@ -21,7 +21,10 @@
   color: var(--text-primary);
 }
 
-.admin-table { overflow: hidden; }
+.admin-table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
 
 .admin-row {
   display: flex;
@@ -78,3 +81,25 @@
 .add-line-btn { align-self: flex-start; margin-top: 4px; font-size: 0.8rem; padding: 6px 14px; }
 
 .edit-footer { display: flex; justify-content: flex-end; gap: 10px; padding-top: 8px; }
+
+@media (max-width: 768px) {
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .admin-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .admin-row-actions {
+    align-self: flex-end;
+  }
+
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import SongCard from '../components/SongCard'
 import SEO from '../components/SEO'
@@ -67,26 +67,53 @@ export default function CatalogPage() {
   const [songs, setSongs] = useState([])
   const [favorites, setFavorites] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
   const [search, setSearch] = useState('')
   const [genre, setGenre] = useState('all')
   const [difficulty, setDifficulty] = useState('all')
   const [sort, setSort] = useState('popular')
 
-  useEffect(() => { fetchSongs() }, [genre, difficulty, sort])
+  useEffect(() => {
+    let cancelled = false
+    async function fetchSongs() {
+      setLoading(true)
+      setLoadError(null)
+      try {
+        if (!isSupabaseConfigured) {
+          if (!cancelled) {
+            setSongs([])
+            setLoadError(
+              'Supabase env vars are missing. Copy .env.example to .env, set REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY, then restart npm start.',
+            )
+          }
+          return
+        }
+        let query = supabase.from('songs').select('*').eq('is_published', true)
+        if (genre !== 'all') query = query.eq('genre', genre)
+        if (difficulty !== 'all') query = query.eq('difficulty', difficulty)
+        if (sort === 'popular') query = query.order('play_count', { ascending: false })
+        else if (sort === 'newest') query = query.order('created_at', { ascending: false })
+        else if (sort === 'az') query = query.order('title', { ascending: true })
+        const { data, error } = await query
+        if (cancelled) return
+        if (error) throw error
+        setSongs(data ?? [])
+        setLoadError(null)
+      } catch (e) {
+        if (!cancelled) {
+          setSongs([])
+          setLoadError(e?.message ?? 'Could not load songs. Check the network and Supabase project.')
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    fetchSongs()
+    return () => {
+      cancelled = true
+    }
+  }, [genre, difficulty, sort])
   useEffect(() => { if (user) fetchFavorites() }, [user])
-
-  async function fetchSongs() {
-    setLoading(true)
-    let query = supabase.from('songs').select('*').eq('is_published', true)
-    if (genre !== 'all') query = query.eq('genre', genre)
-    if (difficulty !== 'all') query = query.eq('difficulty', difficulty)
-    if (sort === 'popular') query = query.order('play_count', { ascending: false })
-    else if (sort === 'newest') query = query.order('created_at', { ascending: false })
-    else if (sort === 'az') query = query.order('title', { ascending: true })
-    const { data } = await query
-    setSongs(data ?? [])
-    setLoading(false)
-  }
 
   async function fetchFavorites() {
     const { data } = await supabase
@@ -151,7 +178,7 @@ export default function CatalogPage() {
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-        {!loading && <p className="hero-count">{songs.length} songs available</p>}
+        {!loading && !loadError && <p className="hero-count">{songs.length} songs available</p>}
       </div>
 
       <div className="container">
@@ -170,6 +197,11 @@ export default function CatalogPage() {
         {/* Results */}
         {loading ? (
           <div className="loading-state">Loading songs...</div>
+        ) : loadError ? (
+          <div className="empty-state catalog-load-error" role="alert">
+            <p className="catalog-load-error-title">Could not load songs</p>
+            <p className="catalog-load-error-detail">{loadError}</p>
+          </div>
         ) : filtered.length === 0 ? (
           <div className="empty-state">No songs found. Try different filters.</div>
         ) : (

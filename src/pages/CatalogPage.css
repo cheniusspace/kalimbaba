@@ -103,6 +103,19 @@
   font-size: 0.78rem;
   outline: none;
   cursor: pointer;
+  max-width: 100%;
+}
+
+@media (max-width: 540px) {
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sort-select {
+    margin-left: 0;
+    width: 100%;
+  }
 }
 
 /* ── Grid ── */
@@ -117,6 +130,20 @@
   padding: 60px 0;
   color: var(--text-muted);
   font-size: 0.9rem;
+}
+
+.catalog-load-error-title {
+  color: var(--text-primary);
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.catalog-load-error-detail {
+  max-width: 36em;
+  margin: 0 auto;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-muted);
 }
 
 @media (max-width: 640px) {

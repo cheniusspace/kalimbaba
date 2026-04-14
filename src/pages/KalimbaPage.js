@@ -6,6 +6,7 @@ import {
   useMemo,
   useCallback,
 } from 'react'
+import { Link } from 'react-router-dom'
 import SEO from '../components/SEO'
 import './KalimbaPage.css'
 
@@ -243,14 +244,14 @@ function kalimbaTabLabel(/** @type {{ note: string, octave: number }} */ tine) {
 function tineHeight(index) {
   const center = 8
   const dist = Math.abs(index - center)
-  const maxH = 422
-  const minH = 292
+  const maxH = 458
+  const minH = 318
   return minH + ((center - dist) / center) * (maxH - minH)
 }
 
 /** When the card is in a narrow column (~half a desktop window), stretch keys vertically and share width. */
 const KALIMBA_COMPACT_PX = 600
-const KALIMBA_COMPACT_HEIGHT_SCALE = 1.14
+const KALIMBA_COMPACT_HEIGHT_SCALE = 1.18
 
 /** Default: middle row … F H G J … (H = center C4 / degree 1), Z–V left, B–N right. */
 const DEFAULT_BINDING_CODES = [
@@ -274,6 +275,8 @@ const DEFAULT_BINDING_CODES = [
 ]
 
 const KEY_BINDINGS_STORAGE_KEY = 'kalimbaba.kalimba.keyBindings'
+/** When set, "Reset to defaults" restores this keyboard layout instead of the built-in app layout. */
+const KEY_BINDINGS_USER_DEFAULT_KEY = 'kalimbaba.kalimba.keyBindingsUserDefault'
 
 const CODES_NOT_ASSIGNABLE = new Set([
   'Escape',
@@ -291,6 +294,14 @@ const CODES_NOT_ASSIGNABLE = new Set([
   'MetaLeft',
   'MetaRight',
 ])
+
+function validateBindingCodesArray(arr) {
+  if (!Array.isArray(arr) || arr.length !== TINES.length) return null
+  if (!arr.every((c) => typeof c === 'string' && c.length > 0)) return null
+  if (new Set(arr).size !== arr.length) return null
+  if (!arr.every((c) => !CODES_NOT_ASSIGNABLE.has(c))) return null
+  return arr
+}
 
 const CODE_LABEL_OVERRIDES = {
   Semicolon: ';',
@@ -319,14 +330,35 @@ function loadSavedBindingCodes() {
   try {
     const raw = localStorage.getItem(KEY_BINDINGS_STORAGE_KEY)
     if (!raw) return null
-    const arr = JSON.parse(raw)
-    if (!Array.isArray(arr) || arr.length !== TINES.length) return null
-    if (!arr.every((c) => typeof c === 'string' && c.length > 0)) return null
-    if (new Set(arr).size !== arr.length) return null
-    if (!arr.every((c) => !CODES_NOT_ASSIGNABLE.has(c))) return null
-    return arr
+    return validateBindingCodesArray(JSON.parse(raw))
   } catch {
     return null
+  }
+}
+
+function loadUserDefaultBindingCodes() {
+  try {
+    const raw = localStorage.getItem(KEY_BINDINGS_USER_DEFAULT_KEY)
+    if (!raw) return null
+    return validateBindingCodesArray(JSON.parse(raw))
+  } catch {
+    return null
+  }
+}
+
+function persistUserDefaultBindingCodes(codes) {
+  try {
+    localStorage.setItem(KEY_BINDINGS_USER_DEFAULT_KEY, JSON.stringify(codes))
+  } catch {
+    /* ignore */
+  }
+}
+
+function clearUserDefaultBindingCodes() {
+  try {
+    localStorage.removeItem(KEY_BINDINGS_USER_DEFAULT_KEY)
+  } catch {
+    /* ignore */
   }
 }
 
@@ -347,7 +379,10 @@ function isEditableKeyboardTarget(/** @type {EventTarget | null} */ target) {
   return Boolean(target.closest('[contenteditable="true"]'))
 }
 
-export default function KalimbaPage() {
+export default function KalimbaPage({ embedded = false, onNotePlayed = null } = {}) {
+  const onNotePlayedRef = useRef(onNotePlayed)
+  onNotePlayedRef.current = onNotePlayed
+
   const audioCtxRef = useRef(null)
   const kalimbaWrapRef = useRef(null)
   const [activeKeys, setActiveKeys] = useState(new Set())
@@ -358,6 +393,9 @@ export default function KalimbaPage() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [notationPrefs, setNotationPrefsState] = useState(loadNotationPrefs)
   const [assigningTineIndex, setAssigningTineIndex] = useState(null)
+  const [hasUserKeyboardDefault, setHasUserKeyboardDefault] = useState(
+    () => loadUserDefaultBindingCodes() !== null,
+  )
 
   const clearKeyCaptureOnly = useCallback(() => {
     setAssigningTineIndex(null)
@@ -397,11 +435,25 @@ export default function KalimbaPage() {
     persistBindingCodes(next)
   }, [])
 
+  const saveCurrentKeyboardAsDefault = useCallback(() => {
+    const codes = [...bindingCodesRef.current]
+    if (!validateBindingCodesArray(codes)) return
+    persistUserDefaultBindingCodes(codes)
+    setHasUserKeyboardDefault(true)
+  }, [])
+
+  const clearSavedKeyboardDefault = useCallback(() => {
+    clearUserDefaultBindingCodes()
+    setHasUserKeyboardDefault(false)
+  }, [])
+
   const resetKalimbaSettingsToDefaults = useCallback(() => {
     const prefs = { ...DEFAULT_NOTATION_PREFS }
     setNotationPrefsState(prefs)
     persistNotationPrefs(prefs)
-    updateBindings([...DEFAULT_BINDING_CODES])
+    const kbd =
+      loadUserDefaultBindingCodes() ?? [...DEFAULT_BINDING_CODES]
+    updateBindings(kbd)
     stopKeyAssignMode()
   }, [updateBindings, stopKeyAssignMode])
 
@@ -430,9 +482,9 @@ export default function KalimbaPage() {
   }
 
   /**
-   * Acrylic / glass kalimba: plucky tine + sparse partials; resonant body (fundamental + soft
-   * harmonic tail). Heard pitch matches `freq` (concert ET). The ~2× partial group is −2 semitones
-   * vs a strict octave (warmer, less “hollow” than 2:1).
+   * Clearer kalimba voice: short decays, faster body swell, light presence lift, and softer very-high
+   * partials so pitch stays defined. Heard pitch matches `freq` (concert ET). The ~2× partial group is
+   * −2 semitones vs a strict octave (warmer, less “hollow” than 2:1).
    */
   function playNote(freq) {
     const ctx = getCtx()
@@ -440,29 +492,29 @@ export default function KalimbaPage() {
     const fPlay = freq
     /** −2 semitones applied to ratios near 2× (the “2” partials). */
     const lower2 = 2 ** (-2 / 12)
-    const fundTail = Math.min(2.92, 0.56 + 510 / freq)
-    const resTail = Math.min(5.15, 1.12 + 1040 / freq)
+    const fundTail = Math.min(2.05, 0.44 + 400 / freq)
+    const resTail = Math.min(3.25, 0.82 + 720 / freq)
 
     const master = ctx.createGain()
-    master.gain.value = 0.34
+    master.gain.value = 0.36
     master.connect(ctx.destination)
 
     const glass = ctx.createBiquadFilter()
     glass.type = 'peaking'
     glass.frequency.value = 8400
     glass.Q.value = 0.88
-    glass.gain.value = 5.8
+    glass.gain.value = 4.2
     glass.connect(master)
 
     const air = ctx.createBiquadFilter()
     air.type = 'highshelf'
     air.frequency.value = 5600
-    air.gain.value = 6.8
+    air.gain.value = 5.2
     air.connect(glass)
 
     const outLP = ctx.createBiquadFilter()
     outLP.type = 'lowpass'
-    outLP.frequency.value = Math.min(16800, 11600 + fPlay * 12)
+    outLP.frequency.value = Math.min(17200, 12200 + fPlay * 13)
     outLP.Q.value = 0.1
     outLP.connect(air)
 
@@ -473,11 +525,18 @@ export default function KalimbaPage() {
     scoop.gain.value = -5.5
     scoop.connect(outLP)
 
+    const presence = ctx.createBiquadFilter()
+    presence.type = 'peaking'
+    presence.frequency.value = Math.min(3400, 900 + fPlay * 2.2)
+    presence.Q.value = 0.72
+    presence.gain.value = 2.4
+    presence.connect(scoop)
+
     const hp = ctx.createBiquadFilter()
     hp.type = 'highpass'
-    hp.frequency.value = 168
+    hp.frequency.value = 190
     hp.Q.value = 0.38
-    hp.connect(scoop)
+    hp.connect(presence)
 
     const sr = ctx.sampleRate
 
@@ -497,8 +556,8 @@ export default function KalimbaPage() {
     const pingG = ctx.createGain()
     pingG.connect(hp)
     ;[
-      { mul: 5.15, ms: 0.0022, p: 1.15, g: 0.24 },
-      { mul: 8.75, ms: 0.0016, p: 1.4, g: 0.175 },
+      { mul: 5.15, ms: 0.0022, p: 1.15, g: 0.27 },
+      { mul: 8.75, ms: 0.0016, p: 1.4, g: 0.2 },
     ].forEach(({ mul, ms, p, g }) => {
       const fPing = Math.min(12800, fPlay * mul)
       const src = ctx.createBufferSource()
@@ -534,10 +593,10 @@ export default function KalimbaPage() {
       osc.type = 'sine'
       osc.frequency.setValueAtTime(fPlay, now)
       const g = ctx.createGain()
-      const peak = 0.108
+      const peak = 0.102
       g.gain.setValueAtTime(0, now)
-      g.gain.linearRampToValueAtTime(peak * 0.1, now + 0.024)
-      g.gain.linearRampToValueAtTime(peak, now + 0.16)
+      g.gain.linearRampToValueAtTime(peak * 0.22, now + 0.018)
+      g.gain.linearRampToValueAtTime(peak, now + 0.095)
       g.gain.exponentialRampToValueAtTime(0.0001, endTime)
       osc.connect(g)
       g.connect(hp)
@@ -552,8 +611,8 @@ export default function KalimbaPage() {
       osc.frequency.setValueAtTime(fPlay * mult, now)
       const g = ctx.createGain()
       g.gain.setValueAtTime(0, now)
-      g.gain.linearRampToValueAtTime(peak * 0.08, now + 0.04)
-      g.gain.linearRampToValueAtTime(peak, now + 0.2)
+      g.gain.linearRampToValueAtTime(peak * 0.1, now + 0.032)
+      g.gain.linearRampToValueAtTime(peak, now + 0.12)
       g.gain.exponentialRampToValueAtTime(0.00009, endTime)
       osc.connect(g)
       g.connect(hp)
@@ -561,11 +620,11 @@ export default function KalimbaPage() {
       osc.stop(endTime + 0.12)
     }
 
-    sineBlip(1, 0.34, 0.00045, now + fundTail)
+    sineBlip(1, 0.38, 0.00038, now + fundTail)
     sineResonantBody(now + resTail)
-    sineResonantHarmonic(2 * lower2, 0.034, now + resTail * 1.05)
-    sineBlip(2.04 * lower2, 0.048, 0.00035, now + Math.min(0.22, 0.078 + 58 / freq))
-    sineBlip(6.25, 0.058, 0.0003, now + Math.min(0.19, 0.068 + 48 / freq))
+    sineResonantHarmonic(2 * lower2, 0.024, now + resTail)
+    sineBlip(2.04 * lower2, 0.034, 0.00032, now + Math.min(0.18, 0.065 + 48 / freq))
+    sineBlip(6.25, 0.022, 0.00028, now + Math.min(0.14, 0.052 + 36 / freq))
   }
 
   const playNoteRef = useRef(playNote)
@@ -580,7 +639,9 @@ export default function KalimbaPage() {
       const tineIndex = codeToTineRef.current[e.code]
       if (tineIndex === undefined) return
       e.preventDefault()
-      playNoteRef.current(TINES[tineIndex].freq)
+      const tine = TINES[tineIndex]
+      playNoteRef.current(tine.freq)
+      onNotePlayedRef.current?.({ note: tine.note, octave: tine.octave })
       setActiveKeys((prev) => new Set(prev).add(tineIndex))
     }
     function onKeyUp(/** @type {KeyboardEvent} */ e) {
@@ -641,6 +702,7 @@ export default function KalimbaPage() {
 
   function handleClick(tine, index) {
     playNote(tine.freq)
+    onNotePlayedRef.current?.({ note: tine.note, octave: tine.octave })
     setActiveKeys(prev => new Set([...prev, index]))
     setTimeout(() => {
       setActiveKeys(prev => {
@@ -652,45 +714,71 @@ export default function KalimbaPage() {
   }
 
   return (
-    <div className="kalimba-page">
-      <SEO
-        title="Virtual Kalimba — Play Online Free"
-        description="Play a free virtual 17-key C major kalimba. Show solfege (So/Ti or Sol/Si), letter names, and/or scale degrees; map your own PC keyboard. No download needed."
-        canonicalPath="/kalimba"
-        schema={{
-          '@context': 'https://schema.org',
-          '@type': 'WebApplication',
-          name: 'Virtual Kalimba',
-          url: 'https://kalimbaba.com/kalimba',
-          description: 'A free interactive 17-key kalimba you can play in your browser.',
-          applicationCategory: 'MusicApplication',
-          operatingSystem: 'Web',
-          isAccessibleForFree: true,
-          offers: {
-            '@type': 'Offer',
-            price: '0',
-            priceCurrency: 'USD',
-          },
-          publisher: {
-            '@type': 'Organization',
-            name: 'Kalimbaba',
-            url: 'https://kalimbaba.com',
-          },
-        }}
-      />
-      <div className="container">
+    <div className={`kalimba-page${embedded ? ' kalimba-page--embedded' : ''}`}>
+      {!embedded ? (
+        <SEO
+          title="Virtual Kalimba — Play Online Free"
+          description="Play a free virtual 17-key C major kalimba. Show solfege (So/Ti or Sol/Si), letter names, and/or scale degrees; map your own PC keyboard. No download needed."
+          canonicalPath="/tools/virtual-kalimba"
+          schema={{
+            '@context': 'https://schema.org',
+            '@type': 'WebApplication',
+            name: 'Virtual Kalimba',
+            url: 'https://kalimbaba.com/tools/virtual-kalimba',
+            description: 'A free interactive 17-key kalimba you can play in your browser.',
+            applicationCategory: 'MusicApplication',
+            operatingSystem: 'Web',
+            isAccessibleForFree: true,
+            offers: {
+              '@type': 'Offer',
+              price: '0',
+              priceCurrency: 'USD',
+            },
+            publisher: {
+              '@type': 'Organization',
+              name: 'Kalimbaba',
+              url: 'https://kalimbaba.com',
+            },
+          }}
+        />
+      ) : null}
+      <div className={embedded ? 'kalimba-embed-container' : 'container'}>
 
         <div
           ref={kalimbaWrapRef}
           className="kalimba-wrap"
           data-compact={compactLayout ? 'true' : undefined}
+          data-embedded={embedded ? 'true' : undefined}
         >
           <div className="kalimba">
             <header className="kalimba-header">
-              <h1 className="kalimba-title font-title">Virtual Kalimba</h1>
-              <p className="kalimba-sub font-script">
-                Press keys on your keyboard to play. Open <strong>Settings</strong> to change options.
-              </p>
+              {embedded ? (
+                <div className="kalimba-header-embed-row">
+                  <h2 className="kalimba-title-embed font-title">Virtual Kalimba</h2>
+                  <div className="kalimba-header-embed-actions">
+                    <Link
+                      to="/tools/virtual-kalimba"
+                      className="kalimba-embed-open-full font-nav"
+                    >
+                      Full page
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p className="kalimba-breadcrumb font-nav">
+                    <Link to="/tools">Tools</Link>
+                    <span className="kalimba-breadcrumb-sep" aria-hidden="true">
+                      /
+                    </span>
+                    <span>Virtual Kalimba</span>
+                  </p>
+                  <h1 className="kalimba-title font-title">Virtual Kalimba</h1>
+                  <p className="kalimba-sub font-body">
+                    Press keys on your keyboard to play. Open <strong>Settings</strong> to change options.
+                  </p>
+                </>
+              )}
               <div className="kalimba-kbd-settings-toolbar">
                 <button
                   type="button"
@@ -837,12 +925,34 @@ export default function KalimbaPage() {
                   <div className="kalimba-kbd-settings-actions">
                     <button
                       type="button"
+                      className="kalimba-kbd-settings-save-default"
+                      onClick={saveCurrentKeyboardAsDefault}
+                      title="Save current key map as your personal default (used when you Reset to defaults)"
+                    >
+                      Save current layout as my default
+                    </button>
+                    <button
+                      type="button"
                       className="kalimba-kbd-settings-reset"
                       onClick={resetKalimbaSettingsToDefaults}
-                      title="Restore keyboard layout and notation to app defaults"
+                      title={
+                        hasUserKeyboardDefault
+                          ? 'Restore notation to app defaults and keyboard to your saved default layout'
+                          : 'Restore keyboard layout and notation to app defaults'
+                      }
                     >
                       Reset to defaults
                     </button>
+                    {hasUserKeyboardDefault ? (
+                      <button
+                        type="button"
+                        className="kalimba-kbd-settings-clear-default"
+                        onClick={clearSavedKeyboardDefault}
+                        title="Remove your saved default so Reset uses the built-in app keyboard layout"
+                      >
+                        Clear saved default
+                      </button>
+                    ) : null}
                   </div>
                 </section>
               ) : null}
@@ -879,7 +989,7 @@ export default function KalimbaPage() {
                     {settingsOpen ? (
                       <button
                         type="button"
-                        className={`tine-kbd tine-kbd--square${
+                        className={`tine-kbd tine-kbd--square font-body${
                           listeningSquare ? ' tine-kbd--square-listening' : ''
                         }`}
                         onClick={(e) => {
@@ -892,7 +1002,7 @@ export default function KalimbaPage() {
                         {keyLabels[i]}
                       </button>
                     ) : (
-                      <span className="tine-kbd" aria-hidden="true">
+                      <span className="tine-kbd font-body" aria-hidden="true">
                         {keyLabels[i]}
                       </span>
                     )}
@@ -916,7 +1026,11 @@ export default function KalimbaPage() {
                 )
               })}
             </div>
-            <p className="kalimba-caption">17 keys · C major</p>
+            <p
+              className={`kalimba-caption font-script${embedded ? ' kalimba-caption--embed' : ''}`}
+            >
+              17 keys · C major
+            </p>
           </div>
         </div>
 
