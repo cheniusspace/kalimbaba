@@ -12,6 +12,7 @@ import SignupPage from './pages/SignupPage'
 import FavoritesPage from './pages/FavoritesPage'
 import AdminPage from './pages/AdminPage'
 import KalimbaPage from './pages/KalimbaPage'
+import ContactPage from './pages/ContactPage'
 import { trackPageView } from './lib/analytics'
 import './styles/global.css'
 
@@ -43,6 +44,7 @@ export default function App() {
                 <Route path="/favorites"  element={<FavoritesPage />} />
                 <Route path="/admin"      element={<AdminPage />} />
                 <Route path="/kalimba"    element={<KalimbaPage />} />
+                <Route path="/contact"    element={<ContactPage />} />
               </Routes>
             </main>
             <Footer />

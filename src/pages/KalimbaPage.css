@@ -3,178 +3,685 @@
   justify-content: center;
   align-items: center;
   min-height: 80vh;
-  padding: 4rem 2rem;
+  padding: 2.5rem 1.25rem 3rem;
 }
 
 .kalimba-page .container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-width: 800px;
+  max-width: min(800px, 100%);
   width: 100%;
+  container-type: inline-size;
+  container-name: kalimba-col;
+}
+
+/* Narrow column (split view, side panel, small window): use vertical space, share key width */
+.kalimba-page:has(.kalimba-wrap[data-compact]) {
+  align-items: stretch;
+  padding: 1.15rem min(0.5rem, 2cqi) 1.75rem;
+  min-height: min(100dvh - 1.5rem, 960px);
+}
+
+@media (max-width: 600px) {
+  .kalimba-page {
+    align-items: stretch;
+    padding: 1.15rem min(0.5rem, 3vw) 1.75rem;
+    min-height: min(100dvh - 1.5rem, 960px);
+  }
+}
+
+.kalimba-wrap[data-compact] {
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 1rem;
 }
 
 .kalimba-header {
   text-align: center;
-  margin-bottom: 3rem;
+  width: 100%;
+  margin: 0 0 1rem;
+  padding: 0 0.5rem;
+}
+
+.kalimba-wrap[data-compact] .kalimba-header {
+  margin: 0 0 0.5rem;
+  padding: 0 min(0.35rem, 2cqi);
 }
 
 .kalimba-title {
-  font-family: 'Antic Didone', serif;
-  font-size: clamp(2.8rem, 7vw, 4.5rem);
-  font-weight: 400;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  font-size: clamp(1.4rem, 4.2vw, 1.95rem);
   color: var(--text-primary);
-  margin-bottom: 6px;
-  line-height: 1;
+  margin: 0 0 4px;
+  line-height: 1.1;
+}
+
+.kalimba-wrap[data-compact] .kalimba-title {
+  font-size: clamp(1.15rem, 6.2cqi, 1.62rem);
 }
 
 .kalimba-sub {
-  font-family: 'Ephesis', cursive;
-  font-weight: 400;
-  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-size: clamp(0.95rem, 2.4vw, 1.2rem);
+  color: var(--text-muted);
+  opacity: 0.9;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.kalimba-wrap[data-compact] .kalimba-sub {
+  font-size: clamp(0.82rem, 4.2cqi, 1.08rem);
+}
+
+.kalimba-settings-notation {
+  margin: 0 0 1.1rem;
+  padding: 0 0 1rem;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  min-width: 0;
+}
+
+.kalimba-settings-heading {
+  margin: 0 0 0.5rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  text-align: left;
+}
+
+.kalimba-settings-heading--kbd {
+  margin-top: 0.15rem;
+}
+
+.kalimba-settings-notation legend.kalimba-settings-heading {
+  margin-top: 0;
+  padding: 0;
+  float: none;
+}
+
+.kalimba-settings-hint--nested {
+  margin: 0 0 0.4rem;
+  font-size: 0.7rem;
+  line-height: 1.35;
+}
+
+.kalimba-settings-check,
+.kalimba-settings-radio {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin: 0.45rem 0 0;
+  font-family: 'DM Sans', 'Outfit', sans-serif;
+  font-size: 0.84rem;
+  font-weight: 500;
   color: var(--text-primary);
-  opacity: 0.7;
+  text-align: left;
+  cursor: pointer;
+  line-height: 1.35;
+}
+
+.kalimba-settings-check:first-of-type,
+.kalimba-settings-radio:first-of-type {
   margin-top: 0;
 }
 
-.note-display {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100px;
-  margin-bottom: 3rem;
-  background-color: var(--bg-card);
+.kalimba-settings-check input,
+.kalimba-settings-radio input {
+  margin: 0.2rem 0 0;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.kalimba-settings-radio-scale {
+  font-size: 0.78em;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: normal;
+}
+
+.kalimba-settings-nested {
+  margin: 0.35rem 0 0.5rem 1.35rem;
+  padding: 0.5rem 0.55rem 0.55rem;
+  border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.kalimba-settings-nested .kalimba-settings-radio {
+  margin-top: 0.35rem;
+}
+
+.kalimba-settings-nested .kalimba-settings-radio:first-child {
+  margin-top: 0;
+}
+
+.kalimba-settings-nested .kalimba-settings-label {
+  margin-top: 0.55rem;
+}
+
+.kalimba-settings-nested .kalimba-settings-select {
+  margin-top: 0;
+}
+
+.kalimba-settings-label {
+  display: block;
+  margin: 0.65rem 0 0.25rem;
+  font-family: 'DM Sans', 'Outfit', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: left;
+}
+
+.kalimba-settings-label:first-of-type {
+  margin-top: 0;
+}
+
+.kalimba-settings-select {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  padding: 0.45rem 0.55rem;
+  font-family: 'DM Sans', 'Outfit', sans-serif;
+  font-size: 0.84rem;
+  color: var(--text-primary);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 1rem 3rem;
-  min-width: 220px;
-  transition: background-color 0.2s, border-color 0.2s;
+  cursor: pointer;
+  box-sizing: border-box;
 }
 
-.note-display-label {
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.8rem;
+.kalimba-settings-select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.kalimba-settings-hint {
+  margin: 0.5rem 0 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  line-height: 1.4;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 4px;
+  text-align: left;
 }
 
-.note-display-note {
-  font-family: 'Shippori Mincho', 'Times New Roman', serif;
-  font-size: 2.8rem;
-  font-weight: 500;
+.kalimba-kbd-settings-toolbar {
+  margin-top: 0.75rem;
+}
+
+.kalimba-kbd-settings-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.9rem;
+  font-family: 'Outfit', 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.kalimba-kbd-settings-toggle:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
   color: var(--text-primary);
+}
+
+.kalimba-kbd-settings {
+  width: 100%;
+  max-width: 100%;
+  margin-top: 1rem;
+  padding: 0.85rem 0.75rem 0.95rem;
+  text-align: left;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+
+.kalimba-kbd-settings-intro {
+  margin: 0 0 0.65rem;
+  font-family: 'DM Sans', 'Outfit', sans-serif;
+  font-size: clamp(0.78rem, 2vw, 0.86rem);
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.kalimba-kbd-settings-intro strong {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.kalimba-kbd-settings-actions {
+  margin-bottom: 0.65rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.kalimba-kbd-settings-reset {
+  padding: 0.35rem 0.65rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.kalimba-kbd-settings-reset:hover {
+  border-color: var(--accent);
+  background: var(--bg-hover);
+}
+
+.kalimba-kbd-tutorial {
+  margin: 0 0 0.65rem;
+  padding: 0.55rem 0.6rem 0.6rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.kalimba-kbd-tutorial__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.45rem;
+}
+
+.kalimba-kbd-tutorial__step {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.kalimba-kbd-tutorial__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.38rem;
+  height: 1.38rem;
+  flex-shrink: 0;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: var(--bg-hover);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+}
+
+.kalimba-kbd-tutorial__label {
+  font-family: 'DM Sans', 'Outfit', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.kalimba-kbd-tutorial__key-mock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.42rem;
+  min-height: 1.42rem;
+  padding: 2px 5px;
+  flex-shrink: 0;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  color: var(--text-muted);
+  border: 1px dashed var(--accent);
+  border-radius: 5px;
+  background: var(--bg-card);
+  box-sizing: border-box;
   line-height: 1;
 }
 
-.note-display-hint {
-  color: var(--text-muted);
-  font-style: italic;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.95rem;
+.kalimba-kbd-tutorial__arrow {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+  user-select: none;
+}
+
+@media (max-width: 480px) {
+  .kalimba-kbd-tutorial__steps {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .kalimba-kbd-tutorial__arrow {
+    text-align: center;
+    transform: rotate(90deg);
+    padding: 0.15rem 0;
+  }
+}
+
+.kalimba-wrap[data-compact] .kalimba-kbd-settings {
+  padding: 0.65rem 0.5rem 0.75rem;
 }
 
 .kalimba-wrap {
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   width: 100%;
   display: flex;
   justify-content: center;
 }
 
+/* Flat 2D board: rounded panel + keys only (no sound hole, bars, or screws) */
 .kalimba {
-  background-color: var(--bg-card);
+  background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 4rem 3rem 6rem 3rem;
-  position: relative;
-  overflow: hidden;
+  border-radius: clamp(18px, 4vw, 28px);
+  padding: 1rem 1rem 1rem;
   width: 100%;
-  max-width: 480px;
-  box-shadow: 0 25px 30px -15px rgba(0, 0, 0, 0.1), inset 0 0 20px rgba(0, 0, 0, 0.02);
+  max-width: min(680px, 100%);
+  box-shadow: 0 12px 32px -20px rgba(0, 0, 0, 0.15);
   transition: background-color 0.2s, border-color 0.2s;
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-sizing: border-box;
+}
+
+.kalimba-wrap[data-compact] .kalimba {
+  max-width: 100%;
+  padding: 0.55rem min(0.35rem, 2cqi) 0.65rem;
+  border-radius: clamp(12px, 2.8cqi, 22px);
 }
 
 .kalimba-keys {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: center;
-  gap: 6px;
-  position: relative;
-  z-index: 1;
-  padding: 0 1rem;
-  height: 280px; 
+  gap: clamp(2px, 0.65vw, 5px);
   width: 100%;
+  box-sizing: border-box;
+  padding: 0.35rem 0.35rem 0.65rem;
+  min-height: 480px;
+}
+
+.kalimba-wrap[data-compact] .kalimba-keys {
+  min-height: min(68dvh, 640px);
+  gap: 0;
+  padding: 0.12rem min(0.08rem, 1cqi) 0.45rem;
+  align-items: flex-start;
 }
 
 .tine {
-  width: 16px; /* Slightly thinner straight rectangles */
-  background: var(--bg);
+  width: clamp(18px, 3.8vw, 28px);
+  min-width: 18px;
+  flex: 0 0 auto;
+  background: var(--bg-surface);
   border: 1px solid var(--border);
-  border-radius: 2px; /* Sharper rectangular tines */
+  border-radius: 4px 4px 12px 12px;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
-  padding-bottom: 45px; /* Longer bottom portion past the bridge */
+  padding: 4px 2px 36px;
+  box-sizing: border-box;
   cursor: pointer;
-  transition: background 0.15s, transform 0.1s, border-color 0.15s;
-  position: relative;
-  z-index: 2;
-  box-shadow: 0 3px 5px rgba(0,0,0,0.1);
+  transition: background 0.12s, transform 0.08s, border-color 0.12s, color 0.12s;
+}
+
+.tine-theory {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.06rem;
+  flex-shrink: 0;
+  line-height: 1.08;
+}
+
+.tine-theory--foot {
+  margin-top: auto;
+  padding-bottom: 2px;
+}
+
+.tine-theory__sol {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(0.45rem, 1.35vw, 0.58rem);
+  font-weight: 700;
+  font-style: italic;
+  color: var(--accent);
+  opacity: 0.95;
+  pointer-events: none;
+  user-select: none;
+}
+
+.tine-theory__letter {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(0.5rem, 1.55vw, 0.66rem);
+  font-weight: 700;
+  color: var(--text-secondary);
+  pointer-events: none;
+  user-select: none;
+}
+
+.tine-theory__deg {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(0.62rem, 2vw, 0.88rem);
+  font-weight: 600;
+  color: var(--text-secondary);
+  pointer-events: none;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+.tine-theory__deg sup {
+  font-size: 0.68em;
+}
+
+.tine-kbd {
+  flex-shrink: 0;
+  align-self: center;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: clamp(0.58rem, 1.85vw, 0.8rem);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-muted);
+  opacity: 0.95;
+  pointer-events: none;
+  user-select: none;
+  letter-spacing: -0.02em;
+}
+
+button.tine-kbd--square {
+  pointer-events: auto;
+  cursor: pointer;
+  margin: 0;
+  padding: 3px 5px;
+  min-width: 1.45rem;
+  min-height: 1.45rem;
+  border: 1px dashed var(--accent);
+  border-radius: 5px;
+  background: var(--bg-card);
+  font: inherit;
+  font-size: clamp(0.58rem, 1.85vw, 0.8rem);
+  font-weight: 700;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  color: var(--text-muted);
+  opacity: 0.95;
+  letter-spacing: -0.02em;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.12s, background 0.12s, color 0.12s, box-shadow 0.12s;
+}
+
+button.tine-kbd--square:hover {
+  border-style: solid;
+  color: var(--accent);
+  background: var(--bg-hover);
+}
+
+button.tine-kbd--square:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+button.tine-kbd--square-listening {
+  border-style: solid;
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--bg-hover);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.kalimba-keys[data-kbd-map] .tine--kbd-square-listening {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.kalimba-wrap[data-compact] .tine-kbd,
+.kalimba-wrap[data-compact] button.tine-kbd--square {
+  font-size: clamp(0.52rem, 4cqi, 0.72rem);
+}
+
+.kalimba-wrap[data-compact] .tine-theory__sol {
+  font-size: clamp(0.4rem, 3.2cqi, 0.52rem);
+}
+
+.kalimba-wrap[data-compact] .tine-theory__letter {
+  font-size: clamp(0.44rem, 3.5cqi, 0.58rem);
+}
+
+.kalimba-wrap[data-compact] .tine-theory__deg {
+  font-size: clamp(0.52rem, 4.5cqi, 0.78rem);
+}
+
+.kalimba-wrap[data-compact] .tine {
+  width: auto;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 36px;
+  padding: 4px 1px clamp(18px, 5.5cqi, 30px);
 }
 
 .tine:hover {
   background: var(--bg-hover);
+  border-color: var(--accent);
 }
 
 .tine.active {
-  transform: translateY(4px);
-  background: var(--brand-hover);
-  border-color: var(--brand-hover);
+  transform: translateY(2px);
+  background: var(--bg-hover);
+  border-color: var(--accent);
 }
 
-.tine.active .tine-label {
-  color: var(--bg);
+.tine.active .tine-kbd,
+.tine.active button.tine-kbd--square {
+  color: var(--accent);
+  opacity: 1;
 }
 
-.tine-label {
+.tine.active .tine-theory__sol,
+.tine.active .tine-theory__letter {
+  color: var(--text-primary);
+  opacity: 1;
+}
+
+.tine.active .tine-theory__deg {
+  color: var(--text-primary);
+}
+
+.kalimba-caption {
+  margin: 0.35rem 0 0;
   font-family: 'Outfit', sans-serif;
-  font-size: 0.85rem;
+  font-size: 0.72rem;
   font-weight: 500;
-  color: var(--text-secondary);
-  pointer-events: none;
-  transition: color 0.15s;
-}
-
-.tine-label sup {
-  font-size: 0.7em;
-}
-
-.kalimba-base {
-  text-align: center;
-  margin-top: 4rem;
-  position: relative;
-  z-index: 1;
-}
-
-.kalimba-brand {
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  letter-spacing: 0.2em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+  color: var(--text-muted);
+  text-align: center;
 }
 
-.kalimba-tip {
-  color: var(--text-muted);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.9rem;
-  text-align: center;
+.kalimba-wrap[data-compact] .kalimba-caption {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  margin-top: 0.25rem;
+}
+
+/* When the main column is narrow but JS has not run yet, match compact layout */
+@container kalimba-col (max-width: 600px) {
+  .kalimba-wrap:not([data-compact]) .kalimba {
+    max-width: 100%;
+    padding: 0.55rem min(0.35rem, 2cqi) 0.65rem;
+    border-radius: clamp(12px, 2.8cqi, 22px);
+  }
+
+  .kalimba-wrap:not([data-compact]) .kalimba-keys {
+    min-height: min(68dvh, 640px);
+    gap: 0;
+    padding: 0.12rem min(0.08rem, 1cqi) 0.45rem;
+  }
+
+  .kalimba-wrap:not([data-compact]) .tine {
+    width: auto;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 36px;
+    padding-bottom: clamp(20px, 5.5cqi, 34px);
+  }
+
+  .kalimba-wrap:not([data-compact]) .kalimba-header {
+    margin: 0 0 0.5rem;
+    padding: 0 min(0.35rem, 2cqi);
+  }
+
+  .kalimba-wrap:not([data-compact]) .kalimba-title {
+    font-size: clamp(1.15rem, 6.2cqi, 1.62rem);
+  }
+
+  .kalimba-wrap:not([data-compact]) .kalimba-sub {
+    font-size: clamp(0.82rem, 4.2cqi, 1.08rem);
+  }
+
+  .kalimba-wrap:not([data-compact]) .kalimba-caption {
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    margin-top: 0.25rem;
+  }
+
+  .kalimba-wrap:not([data-compact]) .tine-kbd {
+    font-size: clamp(0.52rem, 4cqi, 0.72rem);
+  }
+
+  .kalimba-wrap:not([data-compact]) .tine-theory__sol {
+    font-size: clamp(0.4rem, 3.2cqi, 0.52rem);
+  }
+
+  .kalimba-wrap:not([data-compact]) .tine-theory__letter {
+    font-size: clamp(0.44rem, 3.5cqi, 0.58rem);
+  }
+
+  .kalimba-wrap:not([data-compact]) .tine-theory__deg {
+    font-size: clamp(0.52rem, 4.5cqi, 0.78rem);
+  }
+
+  .kalimba-wrap:not([data-compact]) .kalimba-kbd-settings {
+    padding: 0.65rem 0.5rem 0.75rem;
+  }
+
 }

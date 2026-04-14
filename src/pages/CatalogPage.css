@@ -1,42 +1,44 @@
 .catalog-page { padding-bottom: 96px; }
 
-/* ── Hero ── */
+/* ── Hero (moderate: under ~55% viewport, not cramped) ── */
 .catalog-hero {
   text-align: center;
-  padding: 72px 24px 56px;
+  max-height: min(55dvh, 420px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 28px 24px 26px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 40px;
+  margin-bottom: 32px;
+  gap: 14px;
 }
 
 .hero-script {
-  font-family: 'Ephesis', cursive;
-  font-weight: 400;
-  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-size: clamp(1.15rem, 3vw, 1.85rem);
   color: var(--text-primary);
   opacity: 0.7;
-  margin-top: 0;
-  margin-bottom: 36px;
+  margin: 0;
+  line-height: 1.25;
 }
 
 .hero-title {
-  font-family: 'Antic Didone', serif;
-  font-size: clamp(2.8rem, 7vw, 5rem);
-  font-weight: 400;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  font-size: clamp(1.65rem, 5vw, 3rem);
   color: var(--text-primary);
-  margin-bottom: 6px;
+  margin: 0;
   line-height: 1;
 }
 
 .hero-search-wrap {
   max-width: 520px;
-  margin: 0 auto 16px;
+  width: 100%;
+  margin: 0;
 }
 
 .hero-search {
   width: 100%;
-  padding: 14px 22px;
+  padding: 12px 20px;
   background: #ffffff;
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -57,10 +59,11 @@
 }
 
 .hero-count {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--text-muted);
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  margin: 0;
 }
 
 /* ── Filters ── */

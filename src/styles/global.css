@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Allura&family=DM+Sans:wght@300;400;500&family=Outfit:wght@400;500;600&family=Shippori+Mincho:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Outfit:wght@400;500;600&display=swap');
 
 /* ── LIGHT THEME (aligned with Beyond The Shop Door / Kadence palette) ── */
 :root, [data-theme="light"] {
@@ -71,9 +71,14 @@ section { margin-bottom: 48px; }
   color: var(--text-muted);
 }
 
-/* ── TYPOGRAPHY (Shippori Mincho + DM Sans + Outfit — same stack as reference site) ── */
-.font-title    { font-family: 'Shippori Mincho', 'Times New Roman', serif; font-weight: 400; }
-.font-script   { font-family: 'Allura', cursive; font-weight: 400; }
+/* ── TYPOGRAPHY (Antic Didone + Ephesis load in public/index.html with tab fonts) ── */
+.font-title {
+  font-family: 'Antic Didone', 'Times New Roman', serif;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.font-script { font-family: 'Ephesis', cursive; font-weight: 400; }
 .font-tab      { font-family: 'Amatic SC', cursive; font-weight: 700; }
 .font-nav      { font-family: 'Outfit', sans-serif; font-weight: 400; letter-spacing: 0.13em; text-transform: uppercase; }
 .font-body     { font-family: 'DM Sans', sans-serif; }

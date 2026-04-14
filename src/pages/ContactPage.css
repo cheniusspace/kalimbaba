@@ -1,0 +1,137 @@
+/* Fits form in one viewport: nav ~64px + footer ~100px + safe padding */
+.contact-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100svh - 64px - 100px);
+  padding: 12px 16px 16px;
+  box-sizing: border-box;
+}
+
+.contact-inner {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.contact-card {
+  width: 100%;
+  max-width: 440px;
+  max-height: min(100%, calc(100svh - 150px));
+  overflow-y: auto;
+  padding: 18px 20px 20px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.contact-header {
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.contact-script {
+  font-size: clamp(1.25rem, 3.5vw, 1.5rem);
+  color: var(--text-muted);
+  margin-bottom: -2px;
+  opacity: 0.88;
+  line-height: 1.1;
+}
+
+.contact-title {
+  font-size: clamp(1.1rem, 2.8vw, 1.35rem);
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+
+.contact-lead {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+  line-height: 1.45;
+  max-width: 34em;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contact-page .field {
+  gap: 4px;
+}
+
+.contact-page .field-label {
+  font-size: 0.65rem;
+}
+
+.contact-page .field-input {
+  padding: 7px 10px;
+  font-size: 0.84rem;
+}
+
+.contact-textarea {
+  resize: none;
+  min-height: 0;
+  line-height: 1.45;
+  max-height: 22vh;
+  overflow-y: auto;
+}
+
+.contact-char-count {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  align-self: flex-end;
+  margin-top: 2px;
+  opacity: 0.85;
+}
+
+.contact-error {
+  font-size: 0.75rem;
+  color: var(--danger);
+  text-align: center;
+  line-height: 1.35;
+  margin: -2px 0 0;
+}
+
+.contact-submit {
+  width: 100%;
+  justify-content: center;
+  padding: 10px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.contact-back {
+  margin-top: 6px;
+  text-align: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px;
+}
+
+@media (max-height: 640px) {
+  .contact-page {
+    min-height: 0;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .contact-card {
+    padding: 14px 16px 16px;
+  }
+
+  .contact-header {
+    margin-bottom: 10px;
+  }
+
+  .contact-form {
+    gap: 8px;
+  }
+
+  .contact-textarea {
+    max-height: 18vh;
+  }
+}

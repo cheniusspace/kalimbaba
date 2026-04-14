@@ -17,9 +17,7 @@
 
 .admin-title {
   font-size: clamp(1.2rem, 3vw, 1.8rem);
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--text-primary);
 }
 
@@ -39,9 +37,7 @@
 .admin-row-info { flex: 1; min-width: 0; }
 .admin-row-title {
   font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0.06em;
   display: block;
 }
 .admin-row-meta { font-size: 0.75rem; color: var(--text-muted); text-transform: capitalize; }

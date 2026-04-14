@@ -27,11 +27,8 @@
 }
 
 .footer-logo-text {
-  font-family: 'Antic Didone', serif;
   font-size: 1rem;
-  font-weight: 400;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 .logo-tran { color: var(--text-secondary); }
 .logo-muse { color: var(--text-muted); }

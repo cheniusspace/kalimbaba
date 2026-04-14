@@ -7,13 +7,14 @@ export default function Footer() {
       <div className="footer-inner">
         <Link to="/" className="footer-brand">
           <img src="/logo.svg" alt="Kalimbaba" className="footer-logo-img" />
-          <span className="footer-logo-text">
+          <span className="footer-logo-text font-title">
             <span className="logo-tran">Kalim</span><span className="logo-muse">baba</span>
           </span>
         </Link>
 
         <nav className="footer-nav">
           <Link to="/">Browse</Link>
+          <Link to="/contact">Contact</Link>
           <Link to="/favorites">Favorites</Link>
           <Link to="/login">Log in</Link>
           <Link to="/signup">Sign up</Link>

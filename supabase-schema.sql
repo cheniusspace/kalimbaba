@@ -94,6 +94,34 @@ create policy "Users can view own favorites" on public.favorites for select usin
 create policy "Users can add favorites" on public.favorites for insert with check (auth.uid() = user_id);
 create policy "Users can remove favorites" on public.favorites for delete using (auth.uid() = user_id);
 
+-- 5. CONTACT MESSAGES (site contact form; admins read in Supabase dashboard or SQL)
+create table public.contact_messages (
+  id uuid default gen_random_uuid() primary key,
+  name text,
+  email text not null,
+  subject text not null,
+  message text not null,
+  user_id uuid references auth.users(id) on delete set null,
+  created_at timestamp with time zone default now(),
+  constraint contact_messages_subject_len check (char_length(subject) <= 200),
+  constraint contact_messages_message_len check (char_length(message) <= 5000),
+  constraint contact_messages_name_len check (name is null or char_length(name) <= 100),
+  constraint contact_messages_email_len check (char_length(email) <= 320)
+);
+
+alter table public.contact_messages enable row level security;
+
+create policy "Anyone can submit contact" on public.contact_messages for insert
+  with check (user_id is null or user_id = auth.uid());
+
+create policy "Admins can read contact messages" on public.contact_messages for select using (
+  exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
+);
+
+-- API access (PostgREST): without this, inserts from the app often fail with “permission denied”
+grant insert on public.contact_messages to anon, authenticated;
+grant select on public.contact_messages to authenticated;
+
 -- ============================================================
 -- SEED DATA — Three Little Kittens
 -- ============================================================

@@ -23,8 +23,7 @@
 
 .auth-title {
   font-size: 1.6rem;
-  font-weight: 600;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.12em;
   color: var(--text-primary);
 }
 

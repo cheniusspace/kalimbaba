@@ -24,11 +24,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: 'Antic Didone', serif;
   font-size: 1.3rem;
-  font-weight: 400;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--text-primary);
   flex-shrink: 0;
 }

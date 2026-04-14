@@ -140,8 +140,8 @@ export default function CatalogPage() {
 
       {/* Hero */}
       <div className="catalog-hero">
-        <h1 className="hero-title">Kalimba Tabs</h1>
-        <p className="hero-script">Master the thumb piano in minutes.</p>
+        <h1 className="hero-title font-title">Kalimba Tabs</h1>
+        <p className="hero-script font-script">Master the thumb piano in minutes.</p>
         <div className="hero-search-wrap">
           <input
             className="hero-search"
