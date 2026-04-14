@@ -253,6 +253,23 @@ function tineHeight(index) {
 const KALIMBA_COMPACT_PX = 600
 const KALIMBA_COMPACT_HEIGHT_SCALE = 1.18
 
+/** Narrow viewport: no PC keyboard UI; shorter tines (tap-only). */
+const MOBILE_BREAKPOINT_PX = 600
+const MOBILE_TINE_LENGTH_SCALE = 0.72
+
+function useMobileKalimbaLayout() {
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return undefined
+    const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX - 1}px)`)
+    const apply = () => setIsMobile(mq.matches)
+    apply()
+    mq.addEventListener('change', apply)
+    return () => mq.removeEventListener('change', apply)
+  }, [])
+  return isMobile
+}
+
 /** Default: middle row … F H G J … (H = center C4 / degree 1), Z–V left, B–N right. */
 const DEFAULT_BINDING_CODES = [
   'KeyZ',
@@ -387,6 +404,7 @@ export default function KalimbaPage({ embedded = false, onNotePlayed = null } = 
   const kalimbaWrapRef = useRef(null)
   const [activeKeys, setActiveKeys] = useState(new Set())
   const [compactLayout, setCompactLayout] = useState(false)
+  const isMobileLayout = useMobileKalimbaLayout()
   const [bindingCodes, setBindingCodes] = useState(
     () => loadSavedBindingCodes() ?? [...DEFAULT_BINDING_CODES],
   )
@@ -447,15 +465,19 @@ export default function KalimbaPage({ embedded = false, onNotePlayed = null } = 
     setHasUserKeyboardDefault(false)
   }, [])
 
-  const resetKalimbaSettingsToDefaults = useCallback(() => {
+  const resetNotationToDefaults = useCallback(() => {
     const prefs = { ...DEFAULT_NOTATION_PREFS }
     setNotationPrefsState(prefs)
     persistNotationPrefs(prefs)
+    stopKeyAssignMode()
+  }, [stopKeyAssignMode])
+
+  const resetKalimbaSettingsToDefaults = useCallback(() => {
+    resetNotationToDefaults()
     const kbd =
       loadUserDefaultBindingCodes() ?? [...DEFAULT_BINDING_CODES]
     updateBindings(kbd)
-    stopKeyAssignMode()
-  }, [updateBindings, stopKeyAssignMode])
+  }, [resetNotationToDefaults, updateBindings])
 
   useLayoutEffect(() => {
     const el = kalimbaWrapRef.current
@@ -663,6 +685,11 @@ export default function KalimbaPage({ embedded = false, onNotePlayed = null } = 
   }, [assigningTineIndex])
 
   useEffect(() => {
+    if (!isMobileLayout) return undefined
+    setAssigningTineIndex(null)
+  }, [isMobileLayout])
+
+  useEffect(() => {
     if (assigningTineIndex === null) return undefined
 
     function onCaptureKeyDown(/** @type {KeyboardEvent} */ e) {
@@ -748,6 +775,7 @@ export default function KalimbaPage({ embedded = false, onNotePlayed = null } = 
           ref={kalimbaWrapRef}
           className="kalimba-wrap"
           data-compact={compactLayout ? 'true' : undefined}
+          data-mobile={isMobileLayout ? 'true' : undefined}
           data-embedded={embedded ? 'true' : undefined}
         >
           <div className="kalimba">
@@ -775,7 +803,15 @@ export default function KalimbaPage({ embedded = false, onNotePlayed = null } = 
                   </p>
                   <h1 className="kalimba-title font-title">Virtual Kalimba</h1>
                   <p className="kalimba-sub font-body">
-                    Press keys on your keyboard to play. Open <strong>Settings</strong> to change options.
+                    {isMobileLayout ? (
+                      <>
+                        Tap the tines to play. Open <strong>Settings</strong> for notation options.
+                      </>
+                    ) : (
+                      <>
+                        Press keys on your keyboard to play. Open <strong>Settings</strong> to change options.
+                      </>
+                    )}
                   </p>
                 </>
               )}
@@ -896,68 +932,86 @@ export default function KalimbaPage({ embedded = false, onNotePlayed = null } = 
                     </label>
                   </fieldset>
 
-                  <h2 className="kalimba-settings-heading kalimba-settings-heading--kbd">
-                    Computer keyboard
-                  </h2>
-                  <div className="kalimba-kbd-tutorial" aria-label="How to map PC keys">
-                    <div className="kalimba-kbd-tutorial__steps" role="list">
-                      <div className="kalimba-kbd-tutorial__step" role="listitem">
-                        <span className="kalimba-kbd-tutorial__badge" aria-hidden="true">
-                          1
-                        </span>
-                        <span className="kalimba-kbd-tutorial__label">Click</span>
-                        <span className="kalimba-kbd-tutorial__key-mock" aria-hidden="true">
-                          ---
-                        </span>
-                        <span className="kalimba-kbd-tutorial__label">on a key</span>
+                  {!isMobileLayout ? (
+                    <>
+                      <h2 className="kalimba-settings-heading kalimba-settings-heading--kbd">
+                        Computer keyboard
+                      </h2>
+                      <div className="kalimba-kbd-tutorial" aria-label="How to map PC keys">
+                        <div className="kalimba-kbd-tutorial__steps" role="list">
+                          <div className="kalimba-kbd-tutorial__step" role="listitem">
+                            <span className="kalimba-kbd-tutorial__badge" aria-hidden="true">
+                              1
+                            </span>
+                            <span className="kalimba-kbd-tutorial__label">Click</span>
+                            <span className="kalimba-kbd-tutorial__key-mock" aria-hidden="true">
+                              ---
+                            </span>
+                            <span className="kalimba-kbd-tutorial__label">on a key</span>
+                          </div>
+                          <span className="kalimba-kbd-tutorial__arrow" aria-hidden="true">
+                            →
+                          </span>
+                          <div className="kalimba-kbd-tutorial__step" role="listitem">
+                            <span className="kalimba-kbd-tutorial__badge" aria-hidden="true">
+                              2
+                            </span>
+                            <span className="kalimba-kbd-tutorial__label">Press your keyboard key</span>
+                          </div>
+                        </div>
                       </div>
-                      <span className="kalimba-kbd-tutorial__arrow" aria-hidden="true">
-                        →
-                      </span>
-                      <div className="kalimba-kbd-tutorial__step" role="listitem">
-                        <span className="kalimba-kbd-tutorial__badge" aria-hidden="true">
-                          2
-                        </span>
-                        <span className="kalimba-kbd-tutorial__label">Press your keyboard key</span>
+                      <div className="kalimba-kbd-settings-actions">
+                        <button
+                          type="button"
+                          className="kalimba-kbd-settings-save-default"
+                          onClick={saveCurrentKeyboardAsDefault}
+                          title="Save current key map as your personal default (used when you Reset to defaults)"
+                        >
+                          Save current layout as my default
+                        </button>
+                        <button
+                          type="button"
+                          className="kalimba-kbd-settings-reset"
+                          onClick={resetKalimbaSettingsToDefaults}
+                          title={
+                            hasUserKeyboardDefault
+                              ? 'Restore notation to app defaults and keyboard to your saved default layout'
+                              : 'Restore keyboard layout and notation to app defaults'
+                          }
+                        >
+                          Reset to defaults
+                        </button>
+                        {hasUserKeyboardDefault ? (
+                          <button
+                            type="button"
+                            className="kalimba-kbd-settings-clear-default"
+                            onClick={clearSavedKeyboardDefault}
+                            title="Remove your saved default so Reset uses the built-in app keyboard layout"
+                          >
+                            Clear saved default
+                          </button>
+                        ) : null}
                       </div>
-                    </div>
-                  </div>
-                  <div className="kalimba-kbd-settings-actions">
-                    <button
-                      type="button"
-                      className="kalimba-kbd-settings-save-default"
-                      onClick={saveCurrentKeyboardAsDefault}
-                      title="Save current key map as your personal default (used when you Reset to defaults)"
-                    >
-                      Save current layout as my default
-                    </button>
-                    <button
-                      type="button"
-                      className="kalimba-kbd-settings-reset"
-                      onClick={resetKalimbaSettingsToDefaults}
-                      title={
-                        hasUserKeyboardDefault
-                          ? 'Restore notation to app defaults and keyboard to your saved default layout'
-                          : 'Restore keyboard layout and notation to app defaults'
-                      }
-                    >
-                      Reset to defaults
-                    </button>
-                    {hasUserKeyboardDefault ? (
+                    </>
+                  ) : (
+                    <div className="kalimba-kbd-settings-actions kalimba-kbd-settings-actions--mobile">
                       <button
                         type="button"
-                        className="kalimba-kbd-settings-clear-default"
-                        onClick={clearSavedKeyboardDefault}
-                        title="Remove your saved default so Reset uses the built-in app keyboard layout"
+                        className="kalimba-kbd-settings-reset"
+                        onClick={resetNotationToDefaults}
+                        title="Restore notation to app defaults"
                       >
-                        Clear saved default
+                        Reset notation to defaults
                       </button>
-                    ) : null}
-                  </div>
+                    </div>
+                  )}
                 </section>
               ) : null}
             </header>
-            <div className="kalimba-keys" data-kbd-map={settingsOpen ? 'true' : undefined}>
+            <div
+              className="kalimba-keys"
+              data-kbd-map={settingsOpen && !isMobileLayout ? 'true' : undefined}
+            >
               {TINES.map((tine, i) => {
                 const n = notationForTine(tine, notationPrefs)
                 const tab = kalimbaTabLabel(tine)
@@ -965,10 +1019,17 @@ export default function KalimbaPage({ embedded = false, onNotePlayed = null } = 
                 if (n.showSolfege) ariaExtra.push(n.solfege)
                 if (n.showLetter) ariaExtra.push(n.letter)
                 const ariaMid = ariaExtra.length ? ` ${ariaExtra.join(', ')}.` : ''
-                const listeningSquare = settingsOpen && assigningTineIndex === i
-                const tineAria = settingsOpen
-                  ? `Play ${tab}.${ariaMid} Click the small square on top to change the PC key (now ${keyLabels[i]}).`
-                  : `Play ${tab}.${ariaMid} Computer key ${keyLabels[i]}.`
+                const listeningSquare =
+                  settingsOpen && !isMobileLayout && assigningTineIndex === i
+                let tineAria = `Play ${tab}.${ariaMid}`
+                if (settingsOpen && !isMobileLayout) {
+                  tineAria += ` Click the small square on top to change the PC key (now ${keyLabels[i]}).`
+                } else if (!isMobileLayout) {
+                  tineAria += ` Computer key ${keyLabels[i]}.`
+                }
+                const heightScale =
+                  (compactLayout ? KALIMBA_COMPACT_HEIGHT_SCALE : 1) *
+                  (isMobileLayout ? MOBILE_TINE_LENGTH_SCALE : 1)
                 return (
                   <div
                     id={`kalimba-tine-${i}`}
@@ -977,16 +1038,14 @@ export default function KalimbaPage({ embedded = false, onNotePlayed = null } = 
                       listeningSquare ? ' tine--kbd-square-listening' : ''
                     }`}
                     style={{
-                      height:
-                        tineHeight(i) *
-                        (compactLayout ? KALIMBA_COMPACT_HEIGHT_SCALE : 1),
+                      height: tineHeight(i) * heightScale,
                     }}
                     onClick={() => handleClick(tine, i)}
-                    role={settingsOpen ? undefined : 'button'}
-                    tabIndex={settingsOpen ? undefined : 0}
+                    role={settingsOpen && !isMobileLayout ? undefined : 'button'}
+                    tabIndex={settingsOpen && !isMobileLayout ? undefined : 0}
                     aria-label={tineAria}
                   >
-                    {settingsOpen ? (
+                    {!isMobileLayout && settingsOpen ? (
                       <button
                         type="button"
                         className={`tine-kbd tine-kbd--square font-body${
@@ -1001,11 +1060,11 @@ export default function KalimbaPage({ embedded = false, onNotePlayed = null } = 
                       >
                         {keyLabels[i]}
                       </button>
-                    ) : (
+                    ) : !isMobileLayout ? (
                       <span className="tine-kbd font-body" aria-hidden="true">
                         {keyLabels[i]}
                       </span>
-                    )}
+                    ) : null}
                     {n.showSolfege || n.showLetter || n.showDegree ? (
                       <div className="tine-theory tine-theory--foot" aria-hidden="true">
                         {n.showSolfege ? (

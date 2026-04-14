@@ -370,6 +370,11 @@
   gap: 0.5rem;
 }
 
+.kalimba-kbd-settings-actions--mobile {
+  margin-top: 0.35rem;
+  margin-bottom: 0;
+}
+
 .kalimba-kbd-settings-save-default {
   padding: 0.35rem 0.65rem;
   font-family: 'Outfit', sans-serif;
@@ -561,6 +566,16 @@
   gap: 0;
   padding: 0.12rem min(0.08rem, 1cqi) 0.45rem;
   align-items: flex-start;
+}
+
+/* Tap-only layout: shorter tines (height set in JS); avoid excess empty space */
+.kalimba-wrap[data-mobile='true'] .kalimba-keys {
+  min-height: min(52dvh, 380px);
+  padding-top: 0.5rem;
+}
+
+.kalimba-wrap[data-mobile='true'][data-compact='true'] .kalimba-keys {
+  min-height: min(50dvh, 400px);
 }
 
 .tine {
