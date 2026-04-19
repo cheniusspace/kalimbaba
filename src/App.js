@@ -14,6 +14,8 @@ import AdminPage from './pages/AdminPage'
 import KalimbaPage from './pages/KalimbaPage'
 import ToolsPage from './pages/ToolsPage'
 import ResourcesPage from './pages/ResourcesPage'
+import ArticlesPage from './pages/ArticlesPage'
+import ArticlePage from './pages/ArticlePage'
 import ContactPage from './pages/ContactPage'
 import { trackPageView } from './lib/analytics'
 import './styles/global.css'
@@ -49,6 +51,8 @@ export default function App() {
                 <Route path="/tools/virtual-kalimba" element={<KalimbaPage />} />
                 <Route path="/kalimba" element={<Navigate to="/tools/virtual-kalimba" replace />} />
                 <Route path="/resources" element={<ResourcesPage />} />
+                <Route path="/resources/articles" element={<ArticlesPage />} />
+                <Route path="/resources/articles/:slug" element={<ArticlePage />} />
                 <Route path="/contact"    element={<ContactPage />} />
               </Routes>
             </main>

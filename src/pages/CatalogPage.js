@@ -71,7 +71,7 @@ export default function CatalogPage() {
   const [search, setSearch] = useState('')
   const [genre, setGenre] = useState('all')
   const [difficulty, setDifficulty] = useState('all')
-  const [sort, setSort] = useState('popular')
+  const [sort, setSort] = useState('newest')
 
   useEffect(() => {
     let cancelled = false

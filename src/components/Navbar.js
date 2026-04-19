@@ -10,6 +10,7 @@ import {
   ChevronDown,
   User,
   Menu,
+  FileText,
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
@@ -206,15 +207,26 @@ export default function Navbar() {
                     Favorites
                   </Link>
                   {profile?.is_admin ? (
-                    <Link
-                      to="/admin"
-                      className="navbar-user-dropdown-item"
-                      role="menuitem"
-                      onClick={() => setUserMenuOpen(false)}
-                    >
-                      <Settings size={15} className="navbar-user-dropdown-item-icon" aria-hidden="true" />
-                      Add &amp; edit songs
-                    </Link>
+                    <>
+                      <Link
+                        to="/admin"
+                        className="navbar-user-dropdown-item"
+                        role="menuitem"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        <Settings size={15} className="navbar-user-dropdown-item-icon" aria-hidden="true" />
+                        Add &amp; edit songs
+                      </Link>
+                      <Link
+                        to="/admin?section=articles"
+                        className="navbar-user-dropdown-item"
+                        role="menuitem"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        <FileText size={15} className="navbar-user-dropdown-item-icon" aria-hidden="true" />
+                        Add &amp; edit articles
+                      </Link>
+                    </>
                   ) : null}
                   <button
                     type="button"
@@ -229,7 +241,7 @@ export default function Navbar() {
               ) : null}
             </div>
           ) : (
-            <div className="navbar-auth">
+            <div className="navbar-auth navbar-auth--desktop">
               <Link to="/login" className="navbar-login">Log in</Link>
               <Link to="/signup" className="navbar-signup">Sign up</Link>
             </div>
@@ -297,6 +309,25 @@ export default function Navbar() {
             >
               Contact
             </Link>
+
+            {!user ? (
+              <div className="navbar-mobile-auth">
+                <Link
+                  to="/login"
+                  className="navbar-mobile-auth-login"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Log in
+                </Link>
+                <Link
+                  to="/signup"
+                  className="navbar-mobile-auth-signup"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign up
+                </Link>
+              </div>
+            ) : null}
           </div>
         </>
       ) : null}

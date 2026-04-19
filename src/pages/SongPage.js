@@ -61,6 +61,23 @@ export default function SongPage() {
     note: 0,
     finished: false,
   })
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return false
+    return window.matchMedia('(max-width: 767px)').matches
+  })
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return undefined
+    const mql = window.matchMedia('(max-width: 767px)')
+    const update = (e) => setIsMobile(e.matches)
+    setIsMobile(mql.matches)
+    if (mql.addEventListener) {
+      mql.addEventListener('change', update)
+      return () => mql.removeEventListener('change', update)
+    }
+    mql.addListener(update)
+    return () => mql.removeListener(update)
+  }, [])
 
   const handlePracticeNote = useCallback((played) => {
     dispatchPractice({ type: 'PLAYED_NOTE', tabs, played })
@@ -333,7 +350,8 @@ export default function SongPage() {
               onClick={() => setKalimbaOpen((v) => !v)}
             >
               <Piano size={15} strokeWidth={1.75} aria-hidden />
-              Virtual kalimba practice
+              <span className="song-kalimba-label-long">Virtual kalimba practice</span>
+              <span className="song-kalimba-label-short" aria-hidden>Practice</span>
             </button>
           </div>
         </header>
@@ -343,11 +361,15 @@ export default function SongPage() {
             type="button"
             className="song-nav-link song-nav-link-prev"
             disabled={!prevSong}
+            aria-label={prevSong ? `Previous song: ${prevSong.title}` : 'No previous song'}
             onClick={() => prevSong && navigate(`/song/${prevSong.slug}`)}
           >
             <ChevronLeft size={20} strokeWidth={1.75} className="song-nav-chev" aria-hidden />
             <span className="song-nav-text">
-              <span className="song-nav-dir">Previous</span>
+              <span className="song-nav-dir">
+                <span className="song-nav-dir-long">Previous</span>
+                <span className="song-nav-dir-short" aria-hidden>Prev</span>
+              </span>
               {prevSong ? (
                 <span className="song-nav-target">{prevSong.title}</span>
               ) : (
@@ -359,6 +381,7 @@ export default function SongPage() {
             type="button"
             className="song-nav-link song-nav-link-next"
             disabled={!nextSong}
+            aria-label={nextSong ? `Next song: ${nextSong.title}` : 'No next song'}
             onClick={() => nextSong && navigate(`/song/${nextSong.slug}`)}
           >
             <span className="song-nav-text">
@@ -488,7 +511,7 @@ export default function SongPage() {
             const next = tabs[i + 1]
             const shade = rowIndex % 2 === 0 ? 'shaded' : ''
 
-            if (lineCompact(tab) && next && lineCompact(next)) {
+            if (!isMobile && lineCompact(tab) && next && lineCompact(next)) {
               rows.push(
                 <div key={`pair-${tab.id}-${next.id}`} className={`tab-row tab-row-2col ${shade}`}>
                   <div className="pairs tab-half">{renderNotesNoLyrics(tab)}</div>
@@ -497,7 +520,7 @@ export default function SongPage() {
                 </div>
               )
               i += 2
-            } else if (lineCompact(tab) && tab.notes.length >= 2) {
+            } else if (!isMobile && lineCompact(tab) && tab.notes.length >= 2) {
               const mid = Math.ceil(tab.notes.length / 2)
               const left = tab.notes.slice(0, mid)
               const right = tab.notes.slice(mid)

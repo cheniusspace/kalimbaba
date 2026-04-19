@@ -108,3 +108,21 @@
 [data-theme="dark"] .resource-link:hover {
   color: var(--text-primary);
 }
+
+.resource-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  background: transparent;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.resource-cta:hover {
+  background: var(--bg-surface);
+  border-color: var(--accent);
+}

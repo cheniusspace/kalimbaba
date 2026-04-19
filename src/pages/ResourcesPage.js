@@ -1,4 +1,5 @@
-import { BookOpen, GraduationCap, Headphones, ShoppingBag, ExternalLink } from 'lucide-react'
+import { BookOpen, GraduationCap, Headphones, ShoppingBag, ExternalLink, FileText, ArrowRight } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import SEO from '../components/SEO'
 import './ResourcesPage.css'
 
@@ -31,6 +32,25 @@ export default function ResourcesPage() {
         </header>
 
         <div className="resources-sections">
+          <section className="resource-block card" aria-labelledby="res-articles-heading">
+            <div className="resource-block-head">
+              <span className="resource-block-icon" aria-hidden="true">
+                <FileText size={22} strokeWidth={1.25} />
+              </span>
+              <h2 id="res-articles-heading" className="resource-block-title font-nav">
+                Articles
+              </h2>
+            </div>
+            <p className="resource-block-intro">
+              Long-form reading on kalimba — playing technique, history, gear deep-dives, and tips
+              for getting the most out of your instrument.
+            </p>
+            <Link to="/resources/articles" className="resource-cta">
+              <span>Browse all articles</span>
+              <ArrowRight size={14} aria-hidden="true" />
+            </Link>
+          </section>
+
           <section className="resource-block card" aria-labelledby="res-shop-heading">
             <div className="resource-block-head">
               <span className="resource-block-icon" aria-hidden="true">

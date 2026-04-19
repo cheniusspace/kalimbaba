@@ -40,7 +40,7 @@
 
   .navbar-inner {
     flex-wrap: nowrap;
-    gap: 8px;
+    gap: 4px;
     min-height: 56px;
     padding-top: 0;
     padding-bottom: 0;
@@ -229,6 +229,53 @@
     font-weight: 600;
     background: var(--bg-surface);
   }
+
+  .navbar-mobile-auth {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .navbar-mobile-auth-login,
+  .navbar-mobile-auth-signup {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-align: center;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+
+  .navbar-mobile-auth-login {
+    color: var(--text-primary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+  }
+
+  .navbar-mobile-auth-login:hover,
+  .navbar-mobile-auth-login:focus-visible {
+    border-color: var(--accent);
+    outline: none;
+  }
+
+  .navbar-mobile-auth-signup {
+    color: var(--text-primary);
+    background: var(--accent);
+    border: 1px solid var(--accent);
+  }
+
+  .navbar-mobile-auth-signup:hover,
+  .navbar-mobile-auth-signup:focus-visible {
+    filter: brightness(1.05);
+    outline: none;
+  }
 }
 
 /* Search expand */
@@ -398,6 +445,12 @@ button.navbar-user-dropdown-item:hover {
   margin-left: 4px;
 }
 
+@media (max-width: 768px) {
+  .navbar-auth--desktop {
+    display: none;
+  }
+}
+
 .navbar-login {
   font-size: 0.82rem;
   color: var(--text-muted);
@@ -444,5 +497,15 @@ button.navbar-user-dropdown-item:hover {
   .navbar-signup {
     padding: 6px 10px;
     font-size: 0.76rem;
+  }
+
+  .navbar-actions .icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .navbar-menu-toggle {
+    width: 40px;
+    height: 40px;
   }
 }

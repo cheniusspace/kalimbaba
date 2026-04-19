@@ -123,6 +123,43 @@ grant insert on public.contact_messages to anon, authenticated;
 grant select on public.contact_messages to authenticated;
 
 -- ============================================================
+-- 6. ARTICLES (long-form posts under /resources/articles)
+-- ============================================================
+
+create table if not exists public.articles (
+  id uuid default gen_random_uuid() primary key,
+  title text not null,
+  slug text unique not null,
+  excerpt text,
+  content text not null default '',     -- markdown source
+  cover_image_url text,
+  author text,
+  tags text[] default '{}',
+  is_published boolean default false,
+  view_count integer default 0,
+  created_at timestamp with time zone default now(),
+  updated_at timestamp with time zone default now(),
+  published_at timestamp with time zone
+);
+
+create index if not exists articles_published_at_idx
+  on public.articles (published_at desc nulls last)
+  where is_published = true;
+
+create index if not exists articles_slug_idx on public.articles (slug);
+
+alter table public.articles enable row level security;
+
+-- Published articles visible to everyone; admins can do everything
+create policy "Published articles visible to all" on public.articles
+  for select using (is_published = true);
+
+create policy "Admins can manage all articles" on public.articles
+  for all using (
+    exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
+  );
+
+-- ============================================================
 -- SEED DATA — Three Little Kittens
 -- ============================================================
 
