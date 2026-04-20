@@ -48,7 +48,9 @@ export default function SongPage() {
   const navigate = useNavigate()
   const { user, profile } = useAuth()
   const [song, setSong] = useState(null)
-  const [tabs, setTabs] = useState([])
+  const [versions, setVersions] = useState([])
+  const [activeVersionId, setActiveVersionId] = useState(null)
+  const [tabsByVersion, setTabsByVersion] = useState({}) // { [versionId]: [tabRow] }
   const [prevSong, setPrevSong] = useState(null)
   const [nextSong, setNextSong] = useState(null)
   const [isFavorited, setIsFavorited] = useState(false)
@@ -79,6 +81,9 @@ export default function SongPage() {
     return () => mql.removeListener(update)
   }, [])
 
+  const tabs = activeVersionId ? (tabsByVersion[activeVersionId] ?? []) : []
+  const activeVersion = versions.find(v => v.id === activeVersionId) ?? null
+
   const handlePracticeNote = useCallback((played) => {
     dispatchPractice({ type: 'PLAYED_NOTE', tabs, played })
   }, [tabs])
@@ -89,7 +94,7 @@ export default function SongPage() {
 
   useEffect(() => {
     dispatchPractice({ type: 'RESET' })
-  }, [slug])
+  }, [slug, activeVersionId])
 
   useEffect(() => {
     let cancelled = false
@@ -110,13 +115,15 @@ export default function SongPage() {
       if (cancelled) return
       if (songErr || !songData) {
         setSong(null)
-        setTabs([])
+        setVersions([])
+        setActiveVersionId(null)
+        setTabsByVersion({})
         setPrevSong(null)
         setNextSong(null)
         return
       }
 
-      const [prevQuery, nextQuery] = await Promise.all([
+      const [prevQuery, nextQuery, versionsQuery] = await Promise.all([
         supabase.from('songs')
           .select('title,slug')
           .eq('is_published', true)
@@ -129,6 +136,11 @@ export default function SongPage() {
           .gt('title', songData.title)
           .order('title', { ascending: true })
           .limit(1),
+        supabase.from('song_versions')
+          .select('*')
+          .eq('song_id', songData.id)
+          .order('sort_order', { ascending: true })
+          .order('created_at', { ascending: true }),
       ])
 
       if (cancelled) return
@@ -159,13 +171,24 @@ export default function SongPage() {
         prevRow = data?.[0] ?? null
       }
 
-      const { data: tabData } = await supabase
-        .from('tabs')
-        .select('*')
-        .eq('song_id', songData.id)
-        .order('line_order', { ascending: true })
+      const versionList = versionsQuery.data ?? []
 
-      if (cancelled) return
+      let tabsMap = {}
+      if (versionList.length) {
+        const { data: tabData } = await supabase
+          .from('tabs')
+          .select('*')
+          .in('song_version_id', versionList.map(v => v.id))
+          .order('line_order', { ascending: true })
+
+        if (cancelled) return
+        for (const t of tabData ?? []) {
+          if (!tabsMap[t.song_version_id]) tabsMap[t.song_version_id] = []
+          tabsMap[t.song_version_id].push(t)
+        }
+      }
+
+      const defaultVersion = versionList.find(v => v.is_default) ?? versionList[0] ?? null
 
       await supabase
         .from('songs')
@@ -175,13 +198,17 @@ export default function SongPage() {
       if (cancelled) return
 
       setSong(songData)
-      setTabs(tabData ?? [])
+      setVersions(versionList)
+      setTabsByVersion(tabsMap)
+      setActiveVersionId(defaultVersion?.id ?? null)
       setPrevSong(prevRow)
       setNextSong(nextRow)
       } catch (e) {
         if (!cancelled) {
           setSong(null)
-          setTabs([])
+          setVersions([])
+          setActiveVersionId(null)
+          setTabsByVersion({})
           setPrevSong(null)
           setNextSong(null)
         }
@@ -297,7 +324,7 @@ export default function SongPage() {
         <div className="song-main">
         <SEO
           title={`${song.title} Kalimba Tab`}
-          description={song.description || `Learn how to play ${song.title} on kalimba. Free number-note tab for ${song.difficulty ?? 'all'} levels — no music reading required.`}
+          description={song.description || `Learn how to play ${song.title} on kalimba. Free number-note tab for ${activeVersion?.difficulty ?? 'all'} levels — no music reading required.`}
           canonicalPath={`/song/${song.slug}`}
           ogType="music.song"
           schema={{
@@ -307,7 +334,7 @@ export default function SongPage() {
             url: `https://kalimbaba.com/song/${song.slug}`,
             description: song.description || `Free kalimba tab for ${song.title}.`,
             genre: song.genre ?? undefined,
-            educationalLevel: song.difficulty ?? undefined,
+            educationalLevel: activeVersion?.difficulty ?? undefined,
             learningResourceType: 'Musical score',
             isAccessibleForFree: true,
             publisher: {
@@ -324,7 +351,14 @@ export default function SongPage() {
           <p className="song-script font-script">{song.author || 'Kalimba Tab'}</p>
           <div className="song-meta">
             {song.genre && <span className="tag tag-link" onClick={() => navigate(`/?genre=${song.genre}`)}>{song.genre}</span>}
-            {song.difficulty && <span className="tag tag-link" onClick={() => navigate(`/?difficulty=${song.difficulty}`)}>{song.difficulty}</span>}
+            {activeVersion?.difficulty && (
+              <span
+                className="tag tag-link"
+                onClick={() => navigate(`/?difficulty=${activeVersion.difficulty}`)}
+              >
+                {activeVersion.difficulty}
+              </span>
+            )}
             {user && (
               <button
                 type="button"
@@ -395,6 +429,43 @@ export default function SongPage() {
             <ChevronRight size={20} strokeWidth={1.75} className="song-nav-chev" aria-hidden />
           </button>
         </nav>
+
+        {versions.length > 1 && (
+          <div className="song-version-bar" aria-label="Tab version">
+            <span className="song-version-label font-nav">Version</span>
+            <div className="song-version-tabs" role="tablist">
+              {versions.map(v => (
+                <button
+                  key={v.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={v.id === activeVersionId}
+                  className={`song-version-tab${v.id === activeVersionId ? ' song-version-tab--active' : ''}`}
+                  onClick={() => setActiveVersionId(v.id)}
+                >
+                  <span className="song-version-tab-name">{v.name}</span>
+                  <span className="song-version-tab-diff">{v.difficulty}</span>
+                </button>
+              ))}
+            </div>
+            <select
+              className="song-version-select"
+              value={activeVersionId ?? ''}
+              onChange={e => setActiveVersionId(e.target.value)}
+              aria-label="Choose tab version"
+            >
+              {versions.map(v => (
+                <option key={v.id} value={v.id}>
+                  {v.name} — {v.difficulty}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {activeVersion?.description && (
+          <p className="song-version-desc">{activeVersion.description}</p>
+        )}
 
         {/* Tab Card: with virtual kalimba, one line at a time; else full layout */}
         {kalimbaOpen && tabs.length > 0 ? (
@@ -570,6 +641,16 @@ export default function SongPage() {
           <section className="song-description">
             <p>{song.description}</p>
           </section>
+        )}
+
+        {song.updated_at && (
+          <p className="song-updated">
+            Updated {new Date(song.updated_at).toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })}
+          </p>
         )}
 
         {song.youtube_videos?.length > 0 && (

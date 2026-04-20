@@ -9,17 +9,20 @@ const DIFFICULTY_COLOR = {
 }
 
 export default function SongCard({ song, isFavorited, onToggleFavorite }) {
+  const difficulties = Array.isArray(song.difficulties) && song.difficulties.length
+    ? song.difficulties
+    : (song.difficulty ? [song.difficulty] : [])
   return (
     <div className="song-card card">
       <Link to={`/song/${song.slug}`} className="song-card-body">
         <h3 className="song-card-title font-title">{song.title}</h3>
         <div className="song-card-meta">
           {song.genre && <span className="tag">{song.genre}</span>}
-          {song.difficulty && (
-            <span className="tag" style={{ color: DIFFICULTY_COLOR[song.difficulty] }}>
-              {song.difficulty}
+          {difficulties.map(d => (
+            <span key={d} className="tag" style={{ color: DIFFICULTY_COLOR[d] }}>
+              {d}
             </span>
-          )}
+          ))}
         </div>
         {song.description && (
           <p className="song-card-description">{song.description}</p>

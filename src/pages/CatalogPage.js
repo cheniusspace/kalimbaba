@@ -88,16 +88,28 @@ export default function CatalogPage() {
           }
           return
         }
-        let query = supabase.from('songs').select('*').eq('is_published', true)
+        const versionRel = difficulty === 'all'
+          ? 'song_versions(difficulty)'
+          : 'song_versions!inner(difficulty)'
+        let query = supabase
+          .from('songs')
+          .select(`*, ${versionRel}`)
+          .eq('is_published', true)
         if (genre !== 'all') query = query.eq('genre', genre)
-        if (difficulty !== 'all') query = query.eq('difficulty', difficulty)
+        if (difficulty !== 'all') query = query.eq('song_versions.difficulty', difficulty)
         if (sort === 'popular') query = query.order('play_count', { ascending: false })
-        else if (sort === 'newest') query = query.order('created_at', { ascending: false })
+        else if (sort === 'newest') query = query.order('updated_at', { ascending: false })
         else if (sort === 'az') query = query.order('title', { ascending: true })
         const { data, error } = await query
         if (cancelled) return
         if (error) throw error
-        setSongs(data ?? [])
+        const enriched = (data ?? []).map(s => {
+          const diffs = Array.from(new Set((s.song_versions ?? []).map(v => v.difficulty).filter(Boolean)))
+          const order = { beginner: 0, intermediate: 1, advanced: 2 }
+          diffs.sort((a, b) => (order[a] ?? 99) - (order[b] ?? 99))
+          return { ...s, difficulties: diffs }
+        })
+        setSongs(enriched)
         setLoadError(null)
       } catch (e) {
         if (!cancelled) {
