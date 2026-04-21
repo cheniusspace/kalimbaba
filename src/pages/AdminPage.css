@@ -334,8 +334,26 @@
   font-style: italic;
 }
 
-.edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-@media (max-width: 720px) { .edit-grid { grid-template-columns: 1fr; } }
+.edit-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(0, 1.3fr);
+  gap: 20px;
+  align-items: start;
+}
+.edit-col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.tab-lines-card { min-width: 0; position: sticky; top: 16px; align-self: start; }
+.tab-lines-version {
+  margin-left: 8px;
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 0.85em;
+  letter-spacing: normal;
+  text-transform: none;
+}
+@media (max-width: 960px) {
+  .edit-grid { grid-template-columns: 1fr; }
+  .tab-lines-card { position: static; }
+}
 
 .edit-section { padding: 24px; }
 .edit-section-title { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; }
@@ -352,8 +370,15 @@
 .edit-hint { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 16px; }
 .edit-hint code { background: var(--bg-surface); padding: 2px 6px; border-radius: 4px; font-family: monospace; }
 
-.tab-lines { display: flex; flex-direction: column; gap: 8px; }
-.tab-line-row { display: flex; align-items: flex-start; gap: 8px; }
+.tab-lines { display: flex; flex-direction: column; gap: 14px; }
+.tab-line-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--border);
+}
+.tab-line-row:last-of-type { border-bottom: none; }
 .tab-line-num {
   font-size: 0.75rem;
   color: var(--text-muted);
@@ -362,18 +387,96 @@
   padding-top: 10px;
   flex-shrink: 0;
 }
-.tab-line-input {
+
+.tab-cells {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   flex: 1;
-  min-height: 36px;
-  font-family: 'JetBrains Mono', 'Menlo', 'Consolas', monospace;
-  font-size: 0.85rem;
-  line-height: 1.45;
-  resize: vertical;
-  field-sizing: content;
-  tab-size: 8;
-  -moz-tab-size: 8;
-  white-space: pre-wrap;
+  align-items: flex-start;
 }
+
+.tab-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 78px;
+}
+
+.tab-cell-note,
+.tab-cell-syl {
+  width: 100%;
+  padding: 6px 4px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+  box-sizing: border-box;
+}
+
+.tab-cell-note {
+  font-family: 'JetBrains Mono', 'Menlo', 'Consolas', monospace;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.tab-cell-syl {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+}
+
+.tab-cell-note:focus,
+.tab-cell-syl:focus {
+  border-color: var(--accent);
+  background: var(--bg-primary);
+}
+
+.tab-cell-remove {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s, border-color 0.15s;
+}
+.tab-cell:hover .tab-cell-remove,
+.tab-cell:focus-within .tab-cell-remove { opacity: 1; }
+.tab-cell-remove:hover { color: #dc2626; border-color: #dc2626; }
+
+.tab-cell-add {
+  align-self: stretch;
+  min-width: 78px;
+  padding: 6px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.tab-cell-add:hover { color: var(--accent); border-color: var(--accent); }
+
+.tab-line-remove { margin-top: 4px; flex-shrink: 0; }
 
 .edit-hint kbd {
   display: inline-block;
@@ -388,7 +491,6 @@
   border-bottom-width: 2px;
   border-radius: 4px;
 }
-.tab-line-row .icon-btn { margin-top: 4px; }
 .add-line-btn { align-self: flex-start; margin-top: 4px; font-size: 0.8rem; padding: 6px 14px; }
 
 .edit-footer { display: flex; justify-content: flex-end; gap: 10px; padding-top: 8px; }

@@ -33,6 +33,8 @@ description:
 4:won-\t4:der\t3:what\t3:you\t2:are\t2:\t1:
 \`\`\``
 
+function emptyCell() { return { note: '', syllable: '' } }
+
 function newVersion(overrides = {}) {
   return {
     id: null,
@@ -41,7 +43,7 @@ function newVersion(overrides = {}) {
     description: '',
     is_default: true,
     sort_order: 0,
-    tabs: [{ line_order: 1, raw: '' }],
+    tabs: [{ line_order: 1, cells: [emptyCell()] }],
     ...overrides,
   }
 }
@@ -51,11 +53,12 @@ function newVersion(overrides = {}) {
 //   1* 2* 3*
 //   1*:Three 2*:lit- 3*:tle
 //   1°:Three | 2°:lit- | 3°:tle      (legacy format, still works)
+//   1, 2, 3*                          (commas also work)
 // Octave markers: * ^ ' or ° (single = high, double = double-high).
 function parseRaw(raw) {
   if (!raw) return { notes: [], syllables: [] }
   const tokens = raw
-    .replace(/\|/g, ' ')
+    .replace(/[|,]/g, ' ')
     .split(/\s+/)
     .map(s => s.trim())
     .filter(Boolean)
@@ -65,25 +68,48 @@ function parseRaw(raw) {
     const colonIdx = tok.indexOf(':')
     const noteStr = colonIdx >= 0 ? tok.slice(0, colonIdx).trim() : tok.trim()
     const syl = colonIdx >= 0 ? tok.slice(colonIdx + 1).trim() : ''
-    const normalizedNote = noteStr.replace(/[\*\^'\u02C7\u02DA\u00B7]/g, '°')
-    const octaveMatches = normalizedNote.match(/°/g)
-    const octave = octaveMatches ? Math.min(octaveMatches.length, 2) : 0
-    const note = normalizedNote.replace(/°/g, '')
-    if (!note) continue
-    notes.push({ note, octave })
+    const parsed = parseNoteToken(noteStr)
+    if (!parsed.note) continue
+    notes.push(parsed)
     syllables.push(syl)
   }
   return { notes, syllables }
 }
 
+// Turn a single note token like "1", "3*", "5°°" into { note, octave }.
+function parseNoteToken(raw) {
+  if (!raw) return { note: '', octave: 0 }
+  const normalized = String(raw).replace(/[\*\^'\u02C7\u02DA\u00B7]/g, '°')
+  const octave = Math.min((normalized.match(/°/g) || []).length, 2)
+  return { note: normalized.replace(/°/g, '').trim(), octave }
+}
+
+// Render a cell's note back to its display form ("1", "3°", "5°°").
+function noteDisplay(n) {
+  const oct = n.octave === 2 ? '°°' : n.octave === 1 ? '°' : ''
+  return `${n.note}${oct}`
+}
+
+// Convert a raw tab string into an array of cells for the editor.
+function cellsFromRaw(raw) {
+  const { notes, syllables } = parseRaw(raw)
+  if (notes.length === 0) return [emptyCell()]
+  return notes.map((n, i) => ({
+    note: noteDisplay(n),
+    syllable: syllables[i] ?? '',
+  }))
+}
+
 function tabRowFromDb(row) {
-  const hasLyrics = (row.syllables ?? []).some(s => s && String(s).trim())
-  const raw = row.notes.map((n, i) => {
-    const oct = n.octave === 2 ? '°°' : n.octave ? '°' : ''
-    const syl = row.syllables?.[i] ?? ''
-    return hasLyrics ? `${n.note}${oct}:${syl}` : `${n.note}${oct}`
-  }).join(hasLyrics ? ' | ' : ' ')
-  return { id: row.id, line_order: row.line_order, raw }
+  const cells = (row.notes ?? []).map((n, i) => ({
+    note: noteDisplay(n),
+    syllable: row.syllables?.[i] ?? '',
+  }))
+  return {
+    id: row.id,
+    line_order: row.line_order,
+    cells: cells.length ? cells : [emptyCell()],
+  }
 }
 
 const EMPTY_ARTICLE = {
@@ -396,7 +422,7 @@ export default function AdminPage() {
       description: v.description ?? '',
       is_default: !!v.is_default,
       sort_order: v.sort_order ?? 0,
-      tabs: tabsByVersion.get(v.id) ?? [{ line_order: 1, raw: '' }],
+      tabs: tabsByVersion.get(v.id) ?? [{ line_order: 1, cells: [emptyCell()] }],
     }))
 
     if (!built.some(v => v.is_default)) built[0].is_default = true
@@ -453,40 +479,143 @@ export default function AdminPage() {
   function addTabLine(versionIdx) {
     setVersions(prev => prev.map((v, i) => {
       if (i !== versionIdx) return v
-      return { ...v, tabs: [...v.tabs, { line_order: v.tabs.length + 1, raw: '' }] }
+      return { ...v, tabs: [...v.tabs, { line_order: v.tabs.length + 1, cells: [emptyCell()] }] }
     }))
   }
 
   function removeTabLine(versionIdx, lineIdx) {
     setVersions(prev => prev.map((v, i) => {
       if (i !== versionIdx) return v
-      return { ...v, tabs: v.tabs.filter((_, j) => j !== lineIdx) }
+      const nextTabs = v.tabs.filter((_, j) => j !== lineIdx)
+      return { ...v, tabs: nextTabs.length ? nextTabs : [{ line_order: 1, cells: [emptyCell()] }] }
     }))
   }
 
-  function updateTabRaw(versionIdx, lineIdx, value) {
+  function updateCell(versionIdx, lineIdx, cellIdx, field, value) {
     setVersions(prev => prev.map((v, i) => {
       if (i !== versionIdx) return v
-      return { ...v, tabs: v.tabs.map((t, j) => j === lineIdx ? { ...t, raw: value } : t) }
+      return {
+        ...v,
+        tabs: v.tabs.map((t, j) => {
+          if (j !== lineIdx) return t
+          return {
+            ...t,
+            cells: t.cells.map((c, k) => k === cellIdx ? { ...c, [field]: value } : c),
+          }
+        }),
+      }
     }))
   }
 
-  // Intercept Tab inside the tab-line textareas: insert a tab character
-  // (which the parser treats as a note separator) instead of moving focus.
-  // Shift+Tab keeps default browser behavior so users can still escape the field.
-  function handleTabKeyInLine(versionIdx, lineIdx, e) {
-    if (e.key !== 'Tab' || e.shiftKey) return
-    e.preventDefault()
-    const el = e.currentTarget
-    const start = el.selectionStart
-    const end = el.selectionEnd
-    const before = el.value.slice(0, start)
-    const after = el.value.slice(end)
-    const next = `${before}\t${after}`
-    updateTabRaw(versionIdx, lineIdx, next)
-    requestAnimationFrame(() => {
-      el.selectionStart = el.selectionEnd = start + 1
+  function mutateCells(versionIdx, lineIdx, mutator) {
+    setVersions(prev => prev.map((v, i) => {
+      if (i !== versionIdx) return v
+      return {
+        ...v,
+        tabs: v.tabs.map((t, j) => {
+          if (j !== lineIdx) return t
+          const next = mutator(t.cells)
+          return { ...t, cells: next.length ? next : [emptyCell()] }
+        }),
+      }
+    }))
+  }
+
+  function addCell(versionIdx, lineIdx, atIdx) {
+    mutateCells(versionIdx, lineIdx, cells => {
+      const insertAt = typeof atIdx === 'number' ? atIdx : cells.length
+      const next = [...cells]
+      next.splice(insertAt, 0, emptyCell())
+      return next
     })
+  }
+
+  function removeCell(versionIdx, lineIdx, cellIdx) {
+    mutateCells(versionIdx, lineIdx, cells => cells.filter((_, k) => k !== cellIdx))
+  }
+
+  function focusCell(versionIdx, lineIdx, cellIdx, field) {
+    requestAnimationFrame(() => {
+      const sel = `[data-cell="v${versionIdx}-l${lineIdx}-c${cellIdx}-${field}"]`
+      const el = document.querySelector(sel)
+      if (el) {
+        el.focus()
+        if (typeof el.select === 'function') el.select()
+      }
+    })
+  }
+
+  // Keyboard handling inside a note/syllable cell input.
+  //   Tab           → next cell (same field). Adds a new cell if on the last one.
+  //   Shift+Tab     → previous cell (same field). Falls through at the start.
+  //   Enter on note → focus this cell's syllable.
+  //   Enter on syl  → focus next cell's note (adds a new cell if on the last one).
+  //   Backspace on an empty cell → remove cell, focus previous note.
+  function handleCellKey(versionIdx, lineIdx, cellIdx, field, e) {
+    const line = versions[versionIdx]?.tabs[lineIdx]
+    if (!line) return
+    const cells = line.cells
+    const isLast = cellIdx === cells.length - 1
+
+    if (e.key === 'Tab') {
+      if (e.shiftKey) {
+        if (cellIdx === 0) return // let browser move focus out
+        e.preventDefault()
+        focusCell(versionIdx, lineIdx, cellIdx - 1, field)
+        return
+      }
+      e.preventDefault()
+      if (isLast) {
+        addCell(versionIdx, lineIdx)
+        focusCell(versionIdx, lineIdx, cellIdx + 1, field)
+      } else {
+        focusCell(versionIdx, lineIdx, cellIdx + 1, field)
+      }
+      return
+    }
+
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      if (field === 'note') {
+        focusCell(versionIdx, lineIdx, cellIdx, 'syl')
+      } else {
+        if (isLast) addCell(versionIdx, lineIdx)
+        focusCell(versionIdx, lineIdx, cellIdx + 1, 'note')
+      }
+      return
+    }
+
+    if (e.key === 'Backspace') {
+      const cell = cells[cellIdx]
+      const isEmpty = !cell.note && !cell.syllable
+      if (isEmpty && cells.length > 1) {
+        e.preventDefault()
+        removeCell(versionIdx, lineIdx, cellIdx)
+        const target = Math.max(0, cellIdx - 1)
+        focusCell(versionIdx, lineIdx, target, 'note')
+      }
+      return
+    }
+  }
+
+  // If the user pastes multiple tokens into a note cell (e.g. "1 3 5" or "1,3,5"),
+  // split them into consecutive cells instead of dumping the string into one.
+  function handleCellPaste(versionIdx, lineIdx, cellIdx, e) {
+    const text = e.clipboardData?.getData('text') ?? ''
+    if (!text || !/[\s,|]/.test(text)) return
+    e.preventDefault()
+    const { notes, syllables } = parseRaw(text)
+    if (notes.length === 0) return
+    mutateCells(versionIdx, lineIdx, cells => {
+      const next = [...cells]
+      const pasted = notes.map((n, i) => ({
+        note: noteDisplay(n),
+        syllable: syllables[i] ?? '',
+      }))
+      next.splice(cellIdx, 1, ...pasted)
+      return next
+    })
+    focusCell(versionIdx, lineIdx, cellIdx + notes.length - 1, 'note')
   }
 
   // Open the structured-paste panel. If we're on the song list, jump into
@@ -532,8 +661,8 @@ export default function AdminPage() {
         is_default: i === 0,
         sort_order: i,
         tabs: v.lines.length
-          ? v.lines.map((raw, j) => ({ line_order: j + 1, raw }))
-          : [{ line_order: 1, raw: '' }],
+          ? v.lines.map((raw, j) => ({ line_order: j + 1, cells: cellsFromRaw(raw) }))
+          : [{ line_order: 1, cells: [emptyCell()] }],
       }))
 
       // If editing an existing song, queue the old versions for deletion.
@@ -611,7 +740,14 @@ export default function AdminPage() {
       await supabase.from('tabs').delete().eq('song_version_id', versionId)
       const tabInserts = v.tabs
         .map((t, i) => {
-          const { notes, syllables } = parseRaw(t.raw)
+          const notes = []
+          const syllables = []
+          for (const c of t.cells ?? []) {
+            const parsed = parseNoteToken(c.note)
+            if (!parsed.note) continue
+            notes.push(parsed)
+            syllables.push(c.syllable ?? '')
+          }
           if (notes.length === 0) return null
           return { song_version_id: versionId, line_order: i + 1, notes, syllables }
         })
@@ -757,146 +893,209 @@ export default function AdminPage() {
             )}
 
             <div className="edit-grid">
-              {/* Song fields */}
-              <div className="card edit-section">
-                <h3 className="edit-section-title">Song Details</h3>
-                <div className="edit-fields">
-                  <Field label="Title" value={form.title} onChange={v => setForm(f => ({ ...f, title: v }))} />
-                  <Field label="Slug (auto-generated if empty)" value={form.slug} onChange={v => setForm(f => ({ ...f, slug: v }))} />
-                  <SelectField label="Genre" value={form.genre} onChange={v => setForm(f => ({ ...f, genre: v }))}
-                    options={['', 'children', 'pop', 'classical', 'folk', 'anime', 'other']} />
-                  <Field label="Author / Artist" value={form.author} onChange={v => setForm(f => ({ ...f, author: v }))} />
-                  <Field label="Description" value={form.description} onChange={v => setForm(f => ({ ...f, description: v }))} multiline />
-                  <div className="field">
-                    <label className="field-label">YouTube Videos</label>
-                    {(form.youtube_videos ?? []).map((v, i) => (
-                      <div key={i} className="video-row">
-                        <input className="field-input" placeholder="YouTube URL" value={v.url}
-                          onChange={e => setForm(f => { const vids = [...f.youtube_videos]; vids[i] = { ...vids[i], url: e.target.value }; return { ...f, youtube_videos: vids } })} />
-                        <input className="field-input" placeholder="Label (optional)" value={v.title ?? ''}
-                          onChange={e => setForm(f => { const vids = [...f.youtube_videos]; vids[i] = { ...vids[i], title: e.target.value }; return { ...f, youtube_videos: vids } })} />
-                        <button className="icon-btn danger" onClick={() => setForm(f => ({ ...f, youtube_videos: f.youtube_videos.filter((_, idx) => idx !== i) }))}><Trash2 size={14} /></button>
-                      </div>
-                    ))}
-                    <button className="btn btn-outline add-line-btn" onClick={() => setForm(f => ({ ...f, youtube_videos: [...(f.youtube_videos ?? []), { url: '', title: '' }] }))}>
-                      <Plus size={14} /> Add Video
+              <div className="edit-col">
+                {/* Song fields */}
+                <div className="card edit-section">
+                  <h3 className="edit-section-title">Song Details</h3>
+                  <div className="edit-fields">
+                    <Field label="Title" value={form.title} onChange={v => setForm(f => ({ ...f, title: v }))} />
+                    <Field label="Slug (auto-generated if empty)" value={form.slug} onChange={v => setForm(f => ({ ...f, slug: v }))} />
+                    <SelectField label="Genre" value={form.genre} onChange={v => setForm(f => ({ ...f, genre: v }))}
+                      options={['', 'children', 'pop', 'classical', 'folk', 'anime', 'other']} />
+                    <Field label="Author / Artist" value={form.author} onChange={v => setForm(f => ({ ...f, author: v }))} />
+                    <Field label="Description" value={form.description} onChange={v => setForm(f => ({ ...f, description: v }))} multiline />
+                    <div className="field">
+                      <label className="field-label">YouTube Videos</label>
+                      {(form.youtube_videos ?? []).map((v, i) => (
+                        <div key={i} className="video-row">
+                          <input className="field-input" placeholder="YouTube URL" value={v.url}
+                            onChange={e => setForm(f => { const vids = [...f.youtube_videos]; vids[i] = { ...vids[i], url: e.target.value }; return { ...f, youtube_videos: vids } })} />
+                          <input className="field-input" placeholder="Label (optional)" value={v.title ?? ''}
+                            onChange={e => setForm(f => { const vids = [...f.youtube_videos]; vids[i] = { ...vids[i], title: e.target.value }; return { ...f, youtube_videos: vids } })} />
+                          <button className="icon-btn danger" onClick={() => setForm(f => ({ ...f, youtube_videos: f.youtube_videos.filter((_, idx) => idx !== i) }))}><Trash2 size={14} /></button>
+                        </div>
+                      ))}
+                      <button className="btn btn-outline add-line-btn" onClick={() => setForm(f => ({ ...f, youtube_videos: [...(f.youtube_videos ?? []), { url: '', title: '' }] }))}>
+                        <Plus size={14} /> Add Video
+                      </button>
+                    </div>
+                    <label className="checkbox-label">
+                      <input type="checkbox" checked={form.is_published}
+                        onChange={e => setForm(f => ({ ...f, is_published: e.target.checked }))} />
+                      Published (visible to public)
+                    </label>
+                  </div>
+                </div>
+
+                {/* Versions metadata (below Song Details, still on the left) */}
+                <div className="card edit-section">
+                  <div className="version-section-head">
+                    <h3 className="edit-section-title">Versions</h3>
+                    <button type="button" className="btn btn-outline btn-sm" onClick={addVersion}>
+                      <Plus size={14} /> Add Version
                     </button>
                   </div>
-                  <label className="checkbox-label">
-                    <input type="checkbox" checked={form.is_published}
-                      onChange={e => setForm(f => ({ ...f, is_published: e.target.checked }))} />
-                    Published (visible to public)
-                  </label>
+                  <p className="edit-hint">
+                    Add multiple versions of this song (e.g. <em>Easy</em>, <em>Hard</em>, <em>With chords</em>).
+                    Pick which one is shown by default to readers.
+                  </p>
+
+                  {versions.length > 1 && (
+                    <div className="version-tabs" role="tablist" aria-label="Song versions">
+                      {versions.map((v, i) => (
+                        <button
+                          key={v.id ?? `new-${i}`}
+                          type="button"
+                          role="tab"
+                          aria-selected={i === activeVersionIdx}
+                          className={`version-tab${i === activeVersionIdx ? ' version-tab--active' : ''}`}
+                          onClick={() => setActiveVersionIdx(i)}
+                        >
+                          {v.name || 'Untitled'}
+                          {v.is_default ? <span className="version-tab-default" aria-label="Default"> ★</span> : null}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {versions[activeVersionIdx] && (() => {
+                    const v = versions[activeVersionIdx]
+                    const i = activeVersionIdx
+                    return (
+                      <div className="version-pane">
+                        <div className="field-row">
+                          <Field
+                            label="Version name"
+                            value={v.name}
+                            onChange={val => patchVersion(i, { name: val })}
+                          />
+                          <SelectField
+                            label="Difficulty"
+                            value={v.difficulty}
+                            onChange={val => patchVersion(i, { difficulty: val })}
+                            options={DIFFICULTY_OPTIONS}
+                          />
+                        </div>
+                        <Field
+                          label="Version notes (optional)"
+                          value={v.description}
+                          onChange={val => patchVersion(i, { description: val })}
+                          multiline
+                        />
+                        <div className="version-meta-row">
+                          <label className="checkbox-label">
+                            <input
+                              type="radio"
+                              name="default-version"
+                              checked={!!v.is_default}
+                              onChange={() => setDefaultVersion(i)}
+                            />
+                            Default version (shown first to readers)
+                          </label>
+                          {versions.length > 1 && (
+                            <button
+                              type="button"
+                              className="icon-btn danger version-remove"
+                              onClick={() => removeVersion(i)}
+                              title="Remove this version"
+                            >
+                              <Trash2 size={14} /> Remove version
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })()}
                 </div>
               </div>
 
-              <div className="card edit-section">
-                <div className="version-section-head">
-                  <h3 className="edit-section-title">Versions</h3>
-                  <button type="button" className="btn btn-outline btn-sm" onClick={addVersion}>
-                    <Plus size={14} /> Add Version
-                  </button>
-                </div>
-                <p className="edit-hint">
-                  Add multiple versions of this song (e.g. <em>Easy</em>, <em>Hard</em>, <em>With chords</em>).
-                  Pick which one is shown by default to readers.
-                </p>
-
-                {versions.length > 1 && (
-                  <div className="version-tabs" role="tablist" aria-label="Song versions">
-                    {versions.map((v, i) => (
-                      <button
-                        key={v.id ?? `new-${i}`}
-                        type="button"
-                        role="tab"
-                        aria-selected={i === activeVersionIdx}
-                        className={`version-tab${i === activeVersionIdx ? ' version-tab--active' : ''}`}
-                        onClick={() => setActiveVersionIdx(i)}
-                      >
-                        {v.name || 'Untitled'}
-                        {v.is_default ? <span className="version-tab-default" aria-label="Default"> ★</span> : null}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {versions[activeVersionIdx] && (() => {
-                  const v = versions[activeVersionIdx]
-                  const i = activeVersionIdx
-                  return (
-                    <div className="version-pane">
-                      <div className="field-row">
-                        <Field
-                          label="Version name"
-                          value={v.name}
-                          onChange={val => patchVersion(i, { name: val })}
-                        />
-                        <SelectField
-                          label="Difficulty"
-                          value={v.difficulty}
-                          onChange={val => patchVersion(i, { difficulty: val })}
-                          options={DIFFICULTY_OPTIONS}
-                        />
-                      </div>
-                      <Field
-                        label="Version notes (optional)"
-                        value={v.description}
-                        onChange={val => patchVersion(i, { description: val })}
-                        multiline
-                      />
-                      <div className="version-meta-row">
-                        <label className="checkbox-label">
-                          <input
-                            type="radio"
-                            name="default-version"
-                            checked={!!v.is_default}
-                            onChange={() => setDefaultVersion(i)}
-                          />
-                          Default version (shown first to readers)
-                        </label>
-                        {versions.length > 1 && (
+              {/* Tab Lines (right column, spans the full height of the left stack) */}
+              {versions[activeVersionIdx] && (() => {
+                const v = versions[activeVersionIdx]
+                const i = activeVersionIdx
+                return (
+                  <div className="card edit-section tab-lines-card">
+                    <div className="version-section-head">
+                      <h3 className="edit-section-title">
+                        Tab Lines
+                        {versions.length > 1 && v.name && (
+                          <span className="tab-lines-version"> — {v.name}</span>
+                        )}
+                      </h3>
+                    </div>
+                    <p className="edit-hint">
+                      Each note is its own cell. Press <kbd>Tab</kbd> to move to the next note, <kbd>Enter</kbd> to jump to the lyric below, <kbd>Backspace</kbd> on an empty cell to delete it. Use <code>*</code> (or <code>°</code>) for high octave, <code>**</code> for double-high. Pasting a space/comma/tab-separated list splits into cells automatically.
+                    </p>
+                    <div className="tab-lines">
+                      {v.tabs.map((t, j) => (
+                        <div key={j} className="tab-line-row">
+                          <span className="tab-line-num">{j + 1}</span>
+                          <div className="tab-cells">
+                            {t.cells.map((c, k) => (
+                              <div key={k} className="tab-cell">
+                                <input
+                                  type="text"
+                                  className="tab-cell-note"
+                                  data-cell={`v${i}-l${j}-c${k}-note`}
+                                  value={c.note}
+                                  onChange={e => updateCell(i, j, k, 'note', e.target.value)}
+                                  onKeyDown={e => handleCellKey(i, j, k, 'note', e)}
+                                  onPaste={e => handleCellPaste(i, j, k, e)}
+                                  placeholder="1"
+                                  spellCheck={false}
+                                  autoComplete="off"
+                                />
+                                <input
+                                  type="text"
+                                  className="tab-cell-syl"
+                                  data-cell={`v${i}-l${j}-c${k}-syl`}
+                                  value={c.syllable}
+                                  onChange={e => updateCell(i, j, k, 'syllable', e.target.value)}
+                                  onKeyDown={e => handleCellKey(i, j, k, 'syl', e)}
+                                  placeholder="lyric"
+                                  spellCheck={false}
+                                  autoComplete="off"
+                                />
+                                {t.cells.length > 1 && (
+                                  <button
+                                    type="button"
+                                    className="tab-cell-remove"
+                                    onClick={() => removeCell(i, j, k)}
+                                    aria-label="Remove note"
+                                    title="Remove note"
+                                  >
+                                    <X size={10} />
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              className="tab-cell-add"
+                              onClick={() => addCell(i, j)}
+                              title="Add note"
+                            >
+                              <Plus size={12} /> note
+                            </button>
+                          </div>
                           <button
                             type="button"
-                            className="icon-btn danger version-remove"
-                            onClick={() => removeVersion(i)}
-                            title="Remove this version"
+                            className="icon-btn danger tab-line-remove"
+                            onClick={() => removeTabLine(i, j)}
+                            aria-label="Remove line"
+                            title="Remove line"
                           >
-                            <Trash2 size={14} /> Remove version
+                            <Trash2 size={14} />
                           </button>
-                        )}
-                      </div>
-
-                      <div className="version-tabs-divider" />
-
-                      <h4 className="edit-section-subtitle">Tab Lines</h4>
-                      <p className="edit-hint">
-                        Type a note, then press <kbd>Tab</kbd> (or space) to start the next one. Use <code>*</code> (or <code>°</code>) for high octave, <code>**</code> for double-high.
-                        <br />
-                        Notes only: <code>1&nbsp;&nbsp;2&nbsp;&nbsp;3*&nbsp;&nbsp;5*</code> — with lyrics: <code>1:Twin-&nbsp;&nbsp;1:kle&nbsp;&nbsp;5:lit-&nbsp;&nbsp;5:tle</code>
-                      </p>
-                      <div className="tab-lines">
-                        {v.tabs.map((t, j) => (
-                          <div key={j} className="tab-line-row">
-                            <span className="tab-line-num">{j + 1}</span>
-                            <textarea
-                              className="field-input tab-line-input"
-                              value={t.raw}
-                              onChange={e => updateTabRaw(i, j, e.target.value)}
-                              onKeyDown={e => handleTabKeyInLine(i, j, e)}
-                              placeholder="1:Twin-  1:kle  5:lit-  5:tle    (press Tab between notes)"
-                              rows={1}
-                            />
-                            <button className="icon-btn danger" onClick={() => removeTabLine(i, j)}><Trash2 size={14} /></button>
-                          </div>
-                        ))}
-                        <button className="btn btn-outline add-line-btn" onClick={() => addTabLine(i)}>
-                          <Plus size={14} /> Add Line
-                        </button>
-                      </div>
+                        </div>
+                      ))}
+                      <button className="btn btn-outline add-line-btn" onClick={() => addTabLine(i)}>
+                        <Plus size={14} /> Add Line
+                      </button>
                     </div>
-                  )
-                })()}
-              </div>
+                  </div>
+                )
+              })()}
             </div>
 
             {versions[activeVersionIdx] && (
@@ -950,7 +1149,14 @@ function SelectField({ label, value, onChange, options }) {
 function VersionPreview({ song, version }) {
   const renderedTabs = version.tabs
     .map((t, i) => {
-      const { notes, syllables } = parseRaw(t.raw)
+      const notes = []
+      const syllables = []
+      for (const c of t.cells ?? []) {
+        const parsed = parseNoteToken(c.note)
+        if (!parsed.note) continue
+        notes.push(parsed)
+        syllables.push(c.syllable ?? '')
+      }
       return { id: i, line_order: i + 1, notes, syllables }
     })
     .filter(t => t.notes.length > 0)

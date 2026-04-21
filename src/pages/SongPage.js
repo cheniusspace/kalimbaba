@@ -63,24 +63,6 @@ export default function SongPage() {
     note: 0,
     finished: false,
   })
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return false
-    return window.matchMedia('(max-width: 767px)').matches
-  })
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return undefined
-    const mql = window.matchMedia('(max-width: 767px)')
-    const update = (e) => setIsMobile(e.matches)
-    setIsMobile(mql.matches)
-    if (mql.addEventListener) {
-      mql.addEventListener('change', update)
-      return () => mql.removeEventListener('change', update)
-    }
-    mql.addListener(update)
-    return () => mql.removeListener(update)
-  }, [])
-
   const tabs = activeVersionId ? (tabsByVersion[activeVersionId] ?? []) : []
   const activeVersion = versions.find(v => v.id === activeVersionId) ?? null
 
@@ -553,75 +535,29 @@ export default function SongPage() {
           </>
         ) : (
         (() => {
-          const SHORT_NOTES = 8
-          const lineIsShort = tab => tab.notes.length <= SHORT_NOTES
-          const lineCompact = tab => !lineHasLyrics(tab) && lineIsShort(tab)
-
-          const renderNotesNoLyrics = tab =>
-            tab.notes.map((n, j) => (
-              <div key={j} className="pair">
-                <span className="note">
-                  {n.note}{n.octave === 2 ? <sup>°°</sup> : (n.octave === 1 || n.octave === true) ? <sup>°</sup> : null}
-                </span>
-              </div>
-            ))
-
-          const renderNoteOnly = (n, j) => (
-            <div key={j} className="pair">
-              <span className="note">
-                {n.note}{n.octave === 2 ? <sup>°°</sup> : (n.octave === 1 || n.octave === true) ? <sup>°</sup> : null}
-              </span>
-            </div>
-          )
-
-          let rowIndex = 0
-          const rows = []
-          let i = 0
-          while (i < tabs.length) {
-            const tab = tabs[i]
-            const next = tabs[i + 1]
+          const rows = tabs.map((tab, rowIndex) => {
             const shade = rowIndex % 2 === 0 ? 'shaded' : ''
-
-            if (!isMobile && lineCompact(tab) && next && lineCompact(next)) {
-              rows.push(
-                <div key={`pair-${tab.id}-${next.id}`} className={`tab-row tab-row-2col ${shade}`}>
-                  <div className="pairs tab-half">{renderNotesNoLyrics(tab)}</div>
-                  <div className="tab-pair-divider" aria-hidden />
-                  <div className="pairs tab-half">{renderNotesNoLyrics(next)}</div>
+            const hasLyrics = lineHasLyrics(tab)
+            return (
+              <div key={tab.id} className={`tab-row ${shade}`}>
+                <div className="pairs">
+                  {tab.notes.map((n, j) => (
+                    <div key={j} className="pair">
+                      <span className="note">
+                        {n.note}
+                        {n.octave === 2 ? (
+                          <sup>°°</sup>
+                        ) : n.octave === 1 || n.octave === true ? (
+                          <sup>°</sup>
+                        ) : null}
+                      </span>
+                      {hasLyrics && <span className="syl">{tab.syllables[j] || '\u00A0'}</span>}
+                    </div>
+                  ))}
                 </div>
-              )
-              i += 2
-            } else if (!isMobile && lineCompact(tab) && tab.notes.length >= 2) {
-              const mid = Math.ceil(tab.notes.length / 2)
-              const left = tab.notes.slice(0, mid)
-              const right = tab.notes.slice(mid)
-              rows.push(
-                <div key={`split-${tab.id}`} className={`tab-row tab-row-line-split ${shade}`}>
-                  <div className="pairs tab-half">{left.map((n, j) => renderNoteOnly(n, j))}</div>
-                  <div className="tab-pair-divider tab-line-split-divider" aria-hidden />
-                  <div className="pairs tab-half">{right.map((n, j) => renderNoteOnly(n, j + mid))}</div>
-                </div>
-              )
-              i += 1
-            } else {
-              rows.push(
-                <div key={tab.id} className={`tab-row ${shade}`}>
-                  <div className="pairs">
-                    {tab.notes.map((n, j) => (
-                      <div key={j} className="pair">
-                        <span className="note">
-                          {n.note}{n.octave === 2 ? <sup>°°</sup> : (n.octave === 1 || n.octave === true) ? <sup>°</sup> : null}
-                        </span>
-                        <span className="syl">{tab.syllables[j]}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )
-              i += 1
-            }
-            rowIndex += 1
-          }
+              </div>
+            )
+          })
 
           return <main className="tab-card card">{rows}</main>
         })()

@@ -274,62 +274,6 @@
 }
 .tab-row.shaded { background-color: var(--bg-surface); }
 
-.tab-row-2col {
-  display: grid;
-  grid-template-columns: 1fr 1px 1fr;
-  column-gap: clamp(6px, 2vw, 20px);
-  align-items: center;
-  padding: 14px 28px 12px;
-}
-
-.tab-half { padding: 0; }
-.tab-row-2col > .tab-half:first-child,
-.tab-row-line-split > .tab-half:first-child { justify-content: flex-end; }
-.tab-row-2col > .tab-half:last-child,
-.tab-row-line-split > .tab-half:last-child { justify-content: flex-start; }
-
-.tab-pair-divider {
-  align-self: stretch;
-  background: var(--border);
-}
-
-/* One short line → two columns of notes from md up (stacks on small screens) */
-.tab-row-line-split {
-  display: block;
-  padding: 14px 28px 12px;
-}
-
-.tab-row-line-split .tab-line-split-divider {
-  display: none;
-  width: 1px;
-  margin: 0 auto;
-}
-
-@media (min-width: 768px) {
-  .tab-row-line-split {
-    display: grid;
-    grid-template-columns: 1fr 1px 1fr;
-    column-gap: clamp(6px, 2vw, 20px);
-    align-items: center;
-  }
-
-  .tab-row-line-split .tab-line-split-divider {
-    display: block;
-    align-self: stretch;
-    background: var(--border);
-  }
-}
-
-@media (max-width: 767px) {
-  .tab-row-2col {
-    grid-template-columns: 1fr;
-  }
-
-  .tab-row-2col > .tab-pair-divider {
-    display: none;
-  }
-}
-
 .pairs {
   display: flex;
   align-items: flex-end;
