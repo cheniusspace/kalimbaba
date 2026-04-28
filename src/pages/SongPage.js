@@ -491,64 +491,40 @@ export default function SongPage() {
 
         {/* Tab Card: with virtual kalimba, one line at a time; else full layout */}
         {kalimbaOpen && tabs.length > 0 ? (
-          <div className="song-practice-workspace">
-            <div className="song-practice-column song-practice-column--notation">
-              <div className="song-practice-bar card">
-                <div className="song-practice-bar-inner">
-                  <p className="song-practice-bar-text font-nav">
-                    {practice.finished ? (
-                      <>You played every line of this tab.</>
-                    ) : (
-                      <>
-                        Line {practice.line + 1} of {tabs.length}
-                        {' · '}
-                        Note {practice.note + 1} of {tabs[practice.line]?.notes?.length ?? 0}
-                        <span className="song-practice-bar-hint"> — match the highlighted note on the kalimba</span>
-                      </>
-                    )}
-                  </p>
+          <>
+            <div className="song-practice-bar card">
+              <div className="song-practice-bar-inner">
+                <p className="song-practice-bar-text font-nav">
                   {practice.finished ? (
-                    <button
-                      type="button"
-                      className="song-practice-again btn btn-outline"
-                      onClick={() => dispatchPractice({ type: 'AGAIN' })}
-                    >
-                      Practice again
-                    </button>
-                  ) : null}
-                </div>
+                    <>You played every line of this tab.</>
+                  ) : (
+                    <>
+                      Line {practice.line + 1} of {tabs.length}
+                      {' · '}
+                      Note {practice.note + 1} of {tabs[practice.line]?.notes?.length ?? 0}
+                      <span className="song-practice-bar-hint"> — match the highlighted note on the kalimba</span>
+                    </>
+                  )}
+                </p>
+                {practice.finished ? (
+                  <button
+                    type="button"
+                    className="song-practice-again btn btn-outline"
+                    onClick={() => dispatchPractice({ type: 'AGAIN' })}
+                  >
+                    Practice again
+                  </button>
+                ) : null}
               </div>
-              {!practice.finished ? (
-                <main className="tab-card card tab-card--practice">
-                  {(() => {
-                    const tab = tabs[practice.line]
-                    if (!tab) return null
-                    const shade = practice.line % 2 === 0 ? 'shaded' : ''
-                    const hl = practice.note
-                    if (lineHasLyrics(tab)) {
-                      return (
-                        <div className={`tab-row ${shade}`}>
-                          <div className="pairs">
-                            {tab.notes.map((n, j) => (
-                              <div
-                                key={j}
-                                className={`pair${j === hl ? ' pair--practice-next' : ''}`}
-                              >
-                                <span className="note">
-                                  {n.note}
-                                  {n.octave === 2 ? (
-                                    <sup>°°</sup>
-                                  ) : n.octave === 1 || n.octave === true ? (
-                                    <sup>°</sup>
-                                  ) : null}
-                                </span>
-                                <span className="syl">{tab.syllables[j]}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )
-                    }
+            </div>
+            {!practice.finished ? (
+              <main className="tab-card card tab-card--practice">
+                {(() => {
+                  const tab = tabs[practice.line]
+                  if (!tab) return null
+                  const shade = practice.line % 2 === 0 ? 'shaded' : ''
+                  const hl = practice.note
+                  if (lineHasLyrics(tab)) {
                     return (
                       <div className={`tab-row ${shade}`}>
                         <div className="pairs">
@@ -565,23 +541,38 @@ export default function SongPage() {
                                   <sup>°</sup>
                                 ) : null}
                               </span>
+                              <span className="syl">{tab.syllables[j]}</span>
                             </div>
                           ))}
                         </div>
                       </div>
                     )
-                  })()}
-                </main>
-              ) : null}
-            </div>
-            <div
-              className="song-kalimba-below-tab card"
-              id="song-kalimba-panel"
-              aria-label="Virtual kalimba practice"
-            >
-              <KalimbaPage embedded songPracticeEmbed onNotePlayed={handlePracticeNote} />
-            </div>
-          </div>
+                  }
+                  return (
+                    <div className={`tab-row ${shade}`}>
+                      <div className="pairs">
+                        {tab.notes.map((n, j) => (
+                          <div
+                            key={j}
+                            className={`pair${j === hl ? ' pair--practice-next' : ''}`}
+                          >
+                            <span className="note">
+                              {n.note}
+                              {n.octave === 2 ? (
+                                <sup>°°</sup>
+                              ) : n.octave === 1 || n.octave === true ? (
+                                <sup>°</sup>
+                              ) : null}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
+              </main>
+            ) : null}
+          </>
         ) : (
         (() => {
           const rows = tabs.map((tab, rowIndex) => {
