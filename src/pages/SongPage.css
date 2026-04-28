@@ -631,3 +631,143 @@
   .tab-row,
   .tab-row-2col { padding: 12px 14px 10px; }
 }
+
+/* ── Practice mode: tab line + virtual kalimba on one iPhone-class screen (~≤430px) ── */
+@media (max-width: 430px) {
+  .song-page--kalimba {
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    /* Fill viewport below navbar so flex children can share height */
+    min-height: calc(100dvh - 56px - env(safe-area-inset-top, 0px));
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+  }
+
+  .song-page--kalimba .song-inner {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .song-page--kalimba .song-main {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    box-sizing: border-box;
+  }
+
+  .song-page--kalimba .song-header {
+    padding: 8px 10px 4px;
+  }
+
+  .song-page--kalimba .song-title {
+    font-size: clamp(1.2rem, 5.8vw, 1.55rem);
+    margin-bottom: 2px;
+  }
+
+  .song-page--kalimba .song-nav-rail {
+    margin: 6px 0 8px;
+  }
+
+  .song-page--kalimba .song-version-bar {
+    margin: 4px 0 6px;
+  }
+
+  .song-page--kalimba .song-version-desc {
+    margin-bottom: 8px;
+  }
+
+  .song-page--kalimba .song-practice-bar {
+    margin-bottom: 6px;
+    padding: 8px 10px;
+  }
+
+  .song-page--kalimba .song-practice-bar-text {
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+  }
+
+  .song-page--kalimba .song-practice-bar-hint {
+    display: none;
+  }
+
+  .song-page--kalimba .tab-card {
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+
+  .song-page--kalimba .tab-card--practice .tab-row {
+    padding: 6px 10px 6px;
+  }
+
+  .song-page--kalimba .tab-card--practice .pairs {
+    gap: clamp(4px, 1.4vw, 10px);
+  }
+
+  .song-page--kalimba .tab-card--practice .note {
+    font-size: clamp(1rem, 3.8vw, 1.35rem);
+  }
+
+  .song-page--kalimba .song-kalimba-below-tab {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    margin-top: 4px;
+    padding: 2px 2px 4px;
+    overflow: hidden;
+  }
+
+  .song-page--kalimba .song-kalimba-below-tab .kalimba-page--embedded {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .song-page--kalimba .song-kalimba-below-tab .kalimba-embed-container {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .song-page--kalimba .song-kalimba-below-tab .kalimba-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-bottom: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  .song-page--kalimba .song-kalimba-below-tab .kalimba {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+    justify-content: flex-end;
+  }
+
+  .song-page--kalimba .song-kalimba-below-tab .kalimba-header {
+    flex-shrink: 0;
+  }
+
+  .song-page--kalimba .song-kalimba-below-tab .kalimba-keys {
+    min-height: 0 !important;
+    flex: 1 1 auto;
+    max-height: 100%;
+    align-items: flex-end;
+  }
+
+  .song-page--kalimba .song-kalimba-below-tab .kalimba-caption {
+    flex-shrink: 0;
+    margin-top: 0;
+  }
+}

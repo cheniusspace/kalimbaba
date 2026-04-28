@@ -609,7 +609,7 @@ export default function SongPage() {
             id="song-kalimba-panel"
             aria-label="Virtual kalimba practice"
           >
-            <KalimbaPage embedded onNotePlayed={handlePracticeNote} />
+            <KalimbaPage embedded songPracticeEmbed onNotePlayed={handlePracticeNote} />
           </div>
         ) : null}
 

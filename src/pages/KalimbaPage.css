@@ -578,6 +578,12 @@
   min-height: min(50dvh, 400px);
 }
 
+/* Song page practice: drop forced key-bed height so tab + kalimba fit one phone screen */
+.kalimba-wrap[data-song-practice='true'][data-mobile='true'] .kalimba-keys,
+.kalimba-wrap[data-song-practice='true'][data-mobile='true'][data-compact='true'] .kalimba-keys {
+  min-height: 0;
+}
+
 .tine {
   width: clamp(20px, 4.1vw, 31px);
   min-width: 20px;

@@ -256,6 +256,8 @@ const KALIMBA_COMPACT_HEIGHT_SCALE = 1.18
 /** Narrow viewport: no PC keyboard UI; shorter tines (tap-only). */
 const MOBILE_BREAKPOINT_PX = 600
 const MOBILE_TINE_LENGTH_SCALE = 0.72
+/** Extra shrink when embedded on Song practice (fit tab row + keys on one phone screen). */
+const MOBILE_SONG_EMBED_TINE_SCALE = 0.82
 
 function useMobileKalimbaLayout() {
   const [isMobile, setIsMobile] = useState(false)
@@ -270,7 +272,10 @@ function useMobileKalimbaLayout() {
   return isMobile
 }
 
-/** Default: middle row … F H G J … (H = center C4 / degree 1), Z–V left, B–N right. */
+/**
+ * Default PC map follows tines left → right on screen: Z–F left cluster, H = center (C4 / 1),
+ * then J K L ; ' and Y U I for the right side (G was left of H on QWERTY, which mismatched the tines).
+ */
 const DEFAULT_BINDING_CODES = [
   'KeyZ',
   'KeyX',
@@ -281,14 +286,14 @@ const DEFAULT_BINDING_CODES = [
   'KeyD',
   'KeyF',
   'KeyH',
-  'KeyG',
   'KeyJ',
   'KeyK',
   'KeyL',
   'Semicolon',
   'Quote',
-  'KeyB',
-  'KeyN',
+  'KeyY',
+  'KeyU',
+  'KeyI',
 ]
 
 const KEY_BINDINGS_STORAGE_KEY = 'kalimbaba.kalimba.keyBindings'
@@ -396,7 +401,11 @@ function isEditableKeyboardTarget(/** @type {EventTarget | null} */ target) {
   return Boolean(target.closest('[contenteditable="true"]'))
 }
 
-export default function KalimbaPage({ embedded = false, onNotePlayed = null } = {}) {
+export default function KalimbaPage({
+  embedded = false,
+  songPracticeEmbed = false,
+  onNotePlayed = null,
+} = {}) {
   const onNotePlayedRef = useRef(onNotePlayed)
   onNotePlayedRef.current = onNotePlayed
 
@@ -777,6 +786,7 @@ export default function KalimbaPage({ embedded = false, onNotePlayed = null } = 
           data-compact={compactLayout ? 'true' : undefined}
           data-mobile={isMobileLayout ? 'true' : undefined}
           data-embedded={embedded ? 'true' : undefined}
+          data-song-practice={embedded && songPracticeEmbed ? 'true' : undefined}
         >
           <div className="kalimba">
             <header className="kalimba-header">
@@ -1027,9 +1037,12 @@ export default function KalimbaPage({ embedded = false, onNotePlayed = null } = 
                 } else if (!isMobileLayout) {
                   tineAria += ` Computer key ${keyLabels[i]}.`
                 }
+                const mobileLenScale = isMobileLayout
+                  ? MOBILE_TINE_LENGTH_SCALE *
+                    (songPracticeEmbed ? MOBILE_SONG_EMBED_TINE_SCALE : 1)
+                  : 1
                 const heightScale =
-                  (compactLayout ? KALIMBA_COMPACT_HEIGHT_SCALE : 1) *
-                  (isMobileLayout ? MOBILE_TINE_LENGTH_SCALE : 1)
+                  (compactLayout ? KALIMBA_COMPACT_HEIGHT_SCALE : 1) * mobileLenScale
                 return (
                   <div
                     id={`kalimba-tine-${i}`}
