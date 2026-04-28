@@ -1,0 +1,125 @@
+.pin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 20px;
+  overflow-y: auto;
+  animation: pin-modal-fade 0.15s ease;
+}
+
+@keyframes pin-modal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.pin-modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  max-width: 560px;
+  width: 100%;
+  padding: 28px 24px 22px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pin-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 8px;
+  display: inline-flex;
+  border-radius: 999px;
+  transition: background 0.15s, color 0.15s;
+}
+.pin-modal-close:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.pin-modal-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+}
+.pin-modal-title {
+  font-size: 1.25rem;
+  color: var(--text-primary);
+}
+.pin-modal-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: 'Outfit', sans-serif;
+  margin: 0;
+}
+
+.pin-modal-canvas-wrap {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--bg-surface),
+    var(--bg-surface) 10px,
+    var(--bg-hover) 10px,
+    var(--bg-hover) 20px
+  );
+  padding: 14px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.pin-modal-canvas-wrap[aria-busy="true"] {
+  opacity: 0.85;
+}
+
+.pin-modal-canvas {
+  max-width: 100%;
+  max-height: 60vh;
+  height: auto;
+  width: auto;
+  box-shadow: 0 12px 32px -14px rgba(0, 0, 0, 0.5);
+  background: #faf8f5;
+}
+
+.pin-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pin-modal-actions .btn {
+  flex: 1 1 140px;
+  justify-content: center;
+}
+
+.btn.btn-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.pin-modal-hint {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+.pin-modal-hint strong {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+@media (max-width: 560px) {
+  .pin-modal-backdrop { padding: 16px 12px; }
+  .pin-modal { padding: 22px 16px 16px; }
+  .pin-modal-actions .btn { flex-basis: 100%; }
+}

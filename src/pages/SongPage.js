@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useReducer, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { Heart, Pencil, ChevronLeft, ChevronRight, Piano } from 'lucide-react'
+import { Heart, Pencil, ChevronLeft, ChevronRight, Piano, Download } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import SEO from '../components/SEO'
 import SongCard from '../components/SongCard'
+import PinterestPinModal from '../components/PinterestPinModal'
 import KalimbaPage from './KalimbaPage'
 import { tabNotesEqual } from '../lib/tabNotes'
 import './SongPage.css'
@@ -58,6 +59,7 @@ export default function SongPage() {
   const [similarSongs, setSimilarSongs] = useState([])
   const [similarFavoriteIds, setSimilarFavoriteIds] = useState([])
   const [kalimbaOpen, setKalimbaOpen] = useState(false)
+  const [pinOpen, setPinOpen] = useState(false)
   const [practice, dispatchPractice] = useReducer(practiceReducer, {
     line: 0,
     note: 0,
@@ -327,52 +329,73 @@ export default function SongPage() {
           }}
         />
 
-        {/* Header: centered title + tags / actions only */}
+        {/* Header: big title, compact subtitle line (author · tags); actions top-right */}
         <header className="song-header">
           <h1 className="song-title font-title">{song.title}</h1>
-          <p className="song-script font-script">{song.author || 'Kalimba Tab'}</p>
-          <div className="song-meta">
-            {song.genre && <span className="tag tag-link" onClick={() => navigate(`/?genre=${song.genre}`)}>{song.genre}</span>}
-            {activeVersion?.difficulty && (
-              <span
-                className="tag tag-link"
-                onClick={() => navigate(`/?difficulty=${activeVersion.difficulty}`)}
-              >
-                {activeVersion.difficulty}
-              </span>
+          <p className="song-subtitle">
+            <span className="song-script font-script">{song.author || 'Kalimba Tab'}</span>
+            {song.genre && (
+              <>
+                <span className="song-sep" aria-hidden>·</span>
+                <button
+                  type="button"
+                  className="song-chip"
+                  onClick={() => navigate(`/?genre=${song.genre}`)}
+                >
+                  {song.genre}
+                </button>
+              </>
             )}
+            {activeVersion?.difficulty && (
+              <>
+                <span className="song-sep" aria-hidden>·</span>
+                <button
+                  type="button"
+                  className="song-chip"
+                  onClick={() => navigate(`/?difficulty=${activeVersion.difficulty}`)}
+                >
+                  {activeVersion.difficulty}
+                </button>
+              </>
+            )}
+          </p>
+
+          <div className="song-header-actions" role="toolbar" aria-label="Song actions">
             {user && (
               <button
                 type="button"
-                className={`fav-btn ${isFavorited ? 'active' : ''}`}
+                className={`song-icon-btn song-icon-btn--fav${isFavorited ? ' is-active' : ''}`}
                 onClick={toggleFavorite}
+                title={isFavorited ? 'Remove from favorites' : 'Save to favorites'}
+                aria-pressed={isFavorited}
+                aria-label={isFavorited ? 'Remove from favorites' : 'Save to favorites'}
               >
-                <Heart size={15} fill={isFavorited ? 'currentColor' : 'none'} />
-                {isFavorited ? 'Saved' : 'Save'}
+                <Heart size={14} fill={isFavorited ? 'currentColor' : 'none'} />
               </button>
             )}
             {profile?.is_admin && (
-              <Link to={`/admin?edit=${song.slug}`} className="edit-btn">
-                <Pencil size={14} /> Edit
+              <Link
+                to={`/admin?edit=${song.slug}`}
+                className="song-icon-btn"
+                title="Edit song"
+                aria-label="Edit song"
+              >
+                <Pencil size={14} />
               </Link>
             )}
             <button
               type="button"
-              className={`song-kalimba-toggle${kalimbaOpen ? ' song-kalimba-toggle--on' : ''}`}
-              aria-pressed={kalimbaOpen}
-              aria-expanded={kalimbaOpen}
-              aria-controls="song-kalimba-panel"
-              id="song-kalimba-toggle"
-              onClick={() => setKalimbaOpen((v) => !v)}
+              className="song-icon-btn"
+              onClick={() => setPinOpen(true)}
+              title="Download or print this tab"
+              aria-label="Download or print this tab"
             >
-              <Piano size={15} strokeWidth={1.75} aria-hidden />
-              <span className="song-kalimba-label-long">Virtual kalimba practice</span>
-              <span className="song-kalimba-label-short" aria-hidden>Practice</span>
+              <Download size={14} />
             </button>
           </div>
         </header>
 
-        <nav className="song-nav-rail" aria-label="Previous and next song">
+        <nav className="song-nav-rail" aria-label="Song navigation">
           <button
             type="button"
             className="song-nav-link song-nav-link-prev"
@@ -395,6 +418,20 @@ export default function SongPage() {
           </button>
           <button
             type="button"
+            className={`song-nav-practice${kalimbaOpen ? ' is-on' : ''}`}
+            onClick={() => setKalimbaOpen((v) => !v)}
+            title={kalimbaOpen ? 'Close virtual kalimba practice' : 'Open virtual kalimba practice'}
+            aria-label="Virtual kalimba practice"
+            aria-pressed={kalimbaOpen}
+            aria-expanded={kalimbaOpen}
+            aria-controls="song-kalimba-panel"
+            id="song-kalimba-toggle"
+          >
+            <Piano size={18} strokeWidth={1.75} aria-hidden />
+            <span className="song-nav-practice-label">Practice</span>
+          </button>
+          <button
+            type="button"
             className="song-nav-link song-nav-link-next"
             disabled={!nextSong}
             aria-label={nextSong ? `Next song: ${nextSong.title}` : 'No next song'}
@@ -406,7 +443,10 @@ export default function SongPage() {
               ) : (
                 <span className="song-nav-target song-nav-target-muted">—</span>
               )}
-              <span className="song-nav-dir">Next</span>
+              <span className="song-nav-dir">
+                <span className="song-nav-dir-long">Next</span>
+                <span className="song-nav-dir-short" aria-hidden>Next</span>
+              </span>
             </span>
             <ChevronRight size={20} strokeWidth={1.75} className="song-nav-chev" aria-hidden />
           </button>
@@ -638,6 +678,16 @@ export default function SongPage() {
 
         </div>
       </div>
+      {pinOpen && (
+        <PinterestPinModal
+          song={{
+            ...song,
+            difficulty: activeVersion?.difficulty ?? song.difficulty ?? null,
+          }}
+          tabs={tabs}
+          onClose={() => setPinOpen(false)}
+        />
+      )}
     </div>
   )
 }

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, Trash2, Eye, EyeOff, ClipboardPaste, X } from 'lucide-react'
+import { Plus, Trash2, Eye, EyeOff, ClipboardPaste, X, Download } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import MarkdownContent from '../components/MarkdownContent'
+import PinterestPinModal from '../components/PinterestPinModal'
 import './AdminPage.css'
 import './SongPage.css'
 
@@ -349,6 +350,7 @@ export default function AdminPage() {
   const [importOpen, setImportOpen] = useState(false)
   const [importText, setImportText] = useState('')
   const [importError, setImportError] = useState('')
+  const [pinSong, setPinSong] = useState(null)
 
   useEffect(() => {
     if (!loading && !profile?.is_admin) navigate('/')
@@ -824,6 +826,13 @@ export default function AdminPage() {
                     <button className="icon-btn" onClick={() => togglePublish(song)} title={song.is_published ? 'Unpublish' : 'Publish'}>
                       {song.is_published ? <Eye size={16} /> : <EyeOff size={16} />}
                     </button>
+                    <button
+                      className="icon-btn"
+                      onClick={() => setPinSong(song)}
+                      title="Download or print tab image"
+                    >
+                      <Download size={16} />
+                    </button>
                     <button className="icon-btn" onClick={() => startEdit(song)} title="Edit">✏️</button>
                     <button className="icon-btn danger" onClick={() => deleteSong(song.id)} title="Delete">
                       <Trash2 size={16} />
@@ -1116,6 +1125,9 @@ export default function AdminPage() {
         </>
         )}
       </div>
+      {pinSong && (
+        <PinterestPinModal song={pinSong} onClose={() => setPinSong(null)} />
+      )}
     </div>
   )
 }
