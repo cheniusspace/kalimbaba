@@ -603,7 +603,7 @@ export default function SongPage() {
         })()
         )}
 
-        {kalimbaOpen && tabs.length === 0 ? (
+        {kalimbaOpen ? (
           <div
             className="song-kalimba-below-tab card"
             id="song-kalimba-panel"
