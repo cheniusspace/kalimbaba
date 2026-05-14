@@ -112,7 +112,9 @@
 .resource-cta {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+  min-height: 44px;
   padding: 9px 16px;
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -125,4 +127,19 @@
 .resource-cta:hover {
   background: var(--bg-surface);
   border-color: var(--accent);
+}
+
+@media (max-width: 540px) {
+  .resource-block {
+    padding: 22px 18px;
+  }
+
+  .resource-link {
+    align-items: flex-start;
+    line-height: 1.45;
+  }
+
+  .resource-cta {
+    width: 100%;
+  }
 }

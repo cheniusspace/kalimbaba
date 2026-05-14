@@ -105,7 +105,9 @@ a.tools-card:hover {
 .tools-card-cta {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
+  min-height: 44px;
   margin-top: 4px;
   padding: 9px 14px 9px 16px;
   font-size: 0.72rem;
@@ -145,4 +147,22 @@ a.tools-card:hover .tools-card-cta-icon {
 a.tools-card:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
+}
+
+@media (max-width: 540px) {
+  .hub-page {
+    padding: 36px 0 60px;
+  }
+
+  .hub-header {
+    margin-bottom: 30px;
+  }
+
+  .tools-card {
+    padding: 24px 18px;
+  }
+
+  .tools-card-cta {
+    width: 100%;
+  }
 }

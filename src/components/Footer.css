@@ -41,6 +41,8 @@
 }
 
 .footer-nav a {
+  display: inline-flex;
+  align-items: center;
   font-size: 0.82rem;
   color: var(--text-muted);
   transition: color 0.15s;
@@ -61,5 +63,6 @@
     gap: 16px;
     padding: 24px;
   }
-  .footer-nav { gap: 16px; flex-wrap: wrap; justify-content: center; }
+  .footer-nav { gap: 8px 16px; flex-wrap: wrap; justify-content: center; }
+  .footer-nav a { min-height: 44px; }
 }

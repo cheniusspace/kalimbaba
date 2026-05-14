@@ -82,3 +82,27 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+@media (max-width: 540px) {
+  .auth-page {
+    min-height: calc(100dvh - 56px);
+    padding: 28px 16px;
+    align-items: flex-start;
+  }
+
+  .auth-card {
+    padding: 28px 20px;
+  }
+
+  .auth-header {
+    margin-bottom: 24px;
+  }
+
+  .auth-form {
+    gap: 16px;
+  }
+
+  .field-input {
+    font-size: 16px;
+  }
+}

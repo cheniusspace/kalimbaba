@@ -112,6 +112,28 @@
   padding: 10px;
 }
 
+@media (max-width: 540px) {
+  .contact-page {
+    justify-content: flex-start;
+    min-height: calc(100dvh - 56px);
+    padding: 16px;
+  }
+
+  .contact-card {
+    max-height: none;
+    padding: 18px 16px;
+  }
+
+  .contact-page .field-input {
+    font-size: 16px;
+  }
+
+  .contact-submit,
+  .contact-back {
+    min-height: 44px;
+  }
+}
+
 @media (max-height: 640px) {
   .contact-page {
     min-height: 0;
