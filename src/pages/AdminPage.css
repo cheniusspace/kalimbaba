@@ -198,6 +198,24 @@
 .admin-row:hover { background: var(--bg-surface); }
 
 .admin-row-info { flex: 1; min-width: 0; }
+.admin-row-info-button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  display: block;
+  padding: 0;
+  text-align: left;
+}
+.admin-row-info-button:hover .admin-row-title,
+.admin-row-info-button:focus-visible .admin-row-title {
+  color: var(--accent);
+}
+.admin-row-info-button:focus-visible {
+  border-radius: 6px;
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
 .admin-row-title {
   font-size: 0.85rem;
   letter-spacing: 0.06em;
@@ -476,7 +494,21 @@
 }
 .tab-cell-add:hover { color: var(--accent); border-color: var(--accent); }
 
-.tab-line-remove { margin-top: 4px; flex-shrink: 0; }
+.tab-line-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+.tab-line-action {
+  width: 28px;
+  height: 28px;
+}
+.tab-line-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
 
 .edit-hint kbd {
   display: inline-block;

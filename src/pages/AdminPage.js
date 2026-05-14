@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, Trash2, Eye, EyeOff, ClipboardPaste, X, Download } from 'lucide-react'
+import { ArrowDown, ArrowUp, Copy, Plus, Trash2, Eye, EyeOff, ClipboardPaste, X, Download } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import MarkdownContent from '../components/MarkdownContent'
@@ -35,6 +35,22 @@ description:
 \`\`\``
 
 function emptyCell() { return { note: '', syllable: '' } }
+
+function cloneTabLine(line) {
+  return {
+    line_order: line?.line_order ?? 1,
+    cells: (line?.cells?.length ? line.cells : [emptyCell()]).map(c => ({ ...c })),
+  }
+}
+
+function normalizeTabLines(tabs) {
+  const nextTabs = tabs.length ? tabs : [{ line_order: 1, cells: [emptyCell()] }]
+  return nextTabs.map((tab, index) => ({
+    ...tab,
+    line_order: index + 1,
+    cells: tab.cells?.length ? tab.cells : [emptyCell()],
+  }))
+}
 
 function newVersion(overrides = {}) {
   return {
@@ -478,19 +494,50 @@ export default function AdminPage() {
     setVersions(prev => prev.map((v, i) => ({ ...v, is_default: i === idx })))
   }
 
-  function addTabLine(versionIdx) {
+  function addTabLine(versionIdx, afterLineIdx) {
+    const currentTabs = versions[versionIdx]?.tabs ?? []
+    const insertAt = typeof afterLineIdx === 'number' ? afterLineIdx + 1 : currentTabs.length
     setVersions(prev => prev.map((v, i) => {
       if (i !== versionIdx) return v
-      return { ...v, tabs: [...v.tabs, { line_order: v.tabs.length + 1, cells: [emptyCell()] }] }
+      const nextTabs = [...v.tabs]
+      nextTabs.splice(insertAt, 0, { line_order: insertAt + 1, cells: [emptyCell()] })
+      return { ...v, tabs: normalizeTabLines(nextTabs) }
     }))
+    focusCell(versionIdx, insertAt, 0, 'note')
   }
 
   function removeTabLine(versionIdx, lineIdx) {
     setVersions(prev => prev.map((v, i) => {
       if (i !== versionIdx) return v
       const nextTabs = v.tabs.filter((_, j) => j !== lineIdx)
-      return { ...v, tabs: nextTabs.length ? nextTabs : [{ line_order: 1, cells: [emptyCell()] }] }
+      return { ...v, tabs: normalizeTabLines(nextTabs) }
     }))
+  }
+
+  function duplicateTabLine(versionIdx, lineIdx) {
+    const source = versions[versionIdx]?.tabs[lineIdx]
+    if (!source) return
+    const insertAt = lineIdx + 1
+    setVersions(prev => prev.map((v, i) => {
+      if (i !== versionIdx) return v
+      const nextTabs = [...v.tabs]
+      nextTabs.splice(insertAt, 0, cloneTabLine(source))
+      return { ...v, tabs: normalizeTabLines(nextTabs) }
+    }))
+    focusCell(versionIdx, insertAt, 0, 'note')
+  }
+
+  function moveTabLine(versionIdx, lineIdx, direction) {
+    const targetIdx = lineIdx + direction
+    const currentTabs = versions[versionIdx]?.tabs ?? []
+    if (targetIdx < 0 || targetIdx >= currentTabs.length) return
+    setVersions(prev => prev.map((v, i) => {
+      if (i !== versionIdx) return v
+      const nextTabs = [...v.tabs]
+      ;[nextTabs[lineIdx], nextTabs[targetIdx]] = [nextTabs[targetIdx], nextTabs[lineIdx]]
+      return { ...v, tabs: normalizeTabLines(nextTabs) }
+    }))
+    focusCell(versionIdx, targetIdx, 0, 'note')
   }
 
   function updateCell(versionIdx, lineIdx, cellIdx, field, value) {
@@ -816,12 +863,17 @@ export default function AdminPage() {
               {songs.length === 0 && <p className="admin-empty">No songs yet. Add your first one!</p>}
               {songs.map(song => (
                 <div key={song.id} className="admin-row">
-                  <div className="admin-row-info">
+                  <button
+                    type="button"
+                    className="admin-row-info admin-row-info-button"
+                    onClick={() => startEdit(song)}
+                    aria-label={`Edit ${song.title}`}
+                  >
                     <span className="admin-row-title font-title">{song.title}</span>
                     <span className="admin-row-meta">
                       {song.genre || 'no genre'}{song.author ? ` · ${song.author}` : ''}
                     </span>
-                  </div>
+                  </button>
                   <div className="admin-row-actions">
                     <button className="icon-btn" onClick={() => togglePublish(song)} title={song.is_published ? 'Unpublish' : 'Publish'}>
                       {song.is_published ? <Eye size={16} /> : <EyeOff size={16} />}
@@ -1033,7 +1085,7 @@ export default function AdminPage() {
                       </h3>
                     </div>
                     <p className="edit-hint">
-                      Each note is its own cell. Press <kbd>Tab</kbd> to move to the next note, <kbd>Enter</kbd> to jump to the lyric below, <kbd>Backspace</kbd> on an empty cell to delete it. Use <code>*</code> (or <code>°</code>) for high octave, <code>**</code> for double-high. Pasting a space/comma/tab-separated list splits into cells automatically.
+                      Each note is its own cell. Use the line buttons to add, copy, or move rows. Press <kbd>Tab</kbd> to move to the next note, <kbd>Enter</kbd> to jump to the lyric below, <kbd>Backspace</kbd> on an empty cell to delete it. Use <code>*</code> (or <code>°</code>) for high octave, <code>**</code> for double-high. Pasting a space/comma/tab-separated list splits into cells automatically.
                     </p>
                     <div className="tab-lines">
                       {v.tabs.map((t, j) => (
@@ -1087,15 +1139,55 @@ export default function AdminPage() {
                               <Plus size={12} /> note
                             </button>
                           </div>
-                          <button
-                            type="button"
-                            className="icon-btn danger tab-line-remove"
-                            onClick={() => removeTabLine(i, j)}
-                            aria-label="Remove line"
-                            title="Remove line"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                          <div className="tab-line-actions">
+                            <button
+                              type="button"
+                              className="icon-btn tab-line-action"
+                              onClick={() => addTabLine(i, j)}
+                              aria-label="Add line below"
+                              title="Add line below"
+                            >
+                              <Plus size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              className="icon-btn tab-line-action"
+                              onClick={() => duplicateTabLine(i, j)}
+                              aria-label="Copy line"
+                              title="Copy line"
+                            >
+                              <Copy size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              className="icon-btn tab-line-action"
+                              onClick={() => moveTabLine(i, j, -1)}
+                              disabled={j === 0}
+                              aria-label="Move line up"
+                              title="Move line up"
+                            >
+                              <ArrowUp size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              className="icon-btn tab-line-action"
+                              onClick={() => moveTabLine(i, j, 1)}
+                              disabled={j === v.tabs.length - 1}
+                              aria-label="Move line down"
+                              title="Move line down"
+                            >
+                              <ArrowDown size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              className="icon-btn danger tab-line-action"
+                              onClick={() => removeTabLine(i, j)}
+                              aria-label="Remove line"
+                              title="Remove line"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
                       ))}
                       <button className="btn btn-outline add-line-btn" onClick={() => addTabLine(i)}>
