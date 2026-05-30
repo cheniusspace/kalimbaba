@@ -8,6 +8,7 @@ import SongCard from '../components/SongCard'
 import PinterestPinModal from '../components/PinterestPinModal'
 import KalimbaPage from './KalimbaPage'
 import { tabNotesEqual } from '../lib/tabNotes'
+import { loadDecorativeFonts } from '../lib/loadDecorativeFonts'
 import './SongPage.css'
 
 const SIMILAR_LIMIT = 6
@@ -79,6 +80,10 @@ export default function SongPage() {
   useEffect(() => {
     dispatchPractice({ type: 'RESET' })
   }, [slug, activeVersionId])
+
+  useEffect(() => {
+    loadDecorativeFonts()
+  }, [])
 
   useEffect(() => {
     let cancelled = false

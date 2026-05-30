@@ -37,18 +37,36 @@
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <link rel="apple-touch-icon" href="/kalimba-icon-vector.jpg" />
 
-    <!-- Fonts -->
+    <!-- Theme before paint to avoid background/text flash -->
+    <script>
+      (function () {
+        var saved = localStorage.getItem('kalimbaba-theme');
+        var theme = saved === 'dark' || saved === 'light'
+          ? saved
+          : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
+
+    <!-- Critical fonts only (decorative tab font loads after idle) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Ephesis&family=Instrument+Serif&family=Antic+Didone&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Antic+Didone&family=DM+Sans:wght@300;400;500&family=Ephesis&family=Outfit:wght@400;500;600&display=swap">
 
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PLFZY99JVC"></script>
+    <!-- Google Analytics (deferred until after load) -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-PLFZY99JVC', { send_page_view: false });
+      window.addEventListener('load', function () {
+        var script = document.createElement('script');
+        script.async = true;
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=G-PLFZY99JVC';
+        document.head.appendChild(script);
+        script.onload = function () {
+          gtag('js', new Date());
+          gtag('config', 'G-PLFZY99JVC', { send_page_view: false });
+        };
+      });
     </script>
 
     <!-- Base structured data: Organisation + WebSite with SearchAction -->

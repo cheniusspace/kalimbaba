@@ -18,7 +18,7 @@ import { useTheme } from '../context/ThemeContext'
 import './Navbar.css'
 
 export default function Navbar() {
-  const { user, profile, signOut } = useAuth()
+  const { user, profile, loading: authLoading, signOut } = useAuth()
   const { dark, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const { pathname } = useLocation()
@@ -97,7 +97,7 @@ export default function Navbar() {
       <div className={`container navbar-inner${searchOpen ? ' navbar-inner--search' : ''}`}>
         {/* Logo */}
         <Link to="/" className="navbar-logo font-title">
-          <img src="/logo.svg" alt="Kalimbaba" className="navbar-logo-img" />
+          <img src="/logo.svg" alt="" className="navbar-logo-img" width="30" height="30" aria-hidden="true" />
           <span><span className="logo-tran">Kalim</span><span className="logo-muse">baba</span></span>
         </Link>
 
@@ -165,7 +165,9 @@ export default function Navbar() {
             {dark ? <Sun size={17} /> : <Moon size={17} />}
           </button>
 
-          {user ? (
+          {authLoading ? (
+            <div className="navbar-auth-slot navbar-auth-skeleton" aria-hidden="true" />
+          ) : user ? (
             <div className="navbar-user-menu" ref={userMenuRef}>
               <button
                 type="button"

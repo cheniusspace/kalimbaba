@@ -6,7 +6,7 @@ export default function Footer() {
     <footer className="footer">
       <div className="footer-inner">
         <Link to="/" className="footer-brand">
-          <img src="/logo.svg" alt="Kalimbaba" className="footer-logo-img" />
+          <img src="/logo.svg" alt="" className="footer-logo-img" width="28" height="28" aria-hidden="true" />
           <span className="footer-logo-text font-title">
             <span className="logo-tran">Kalim</span><span className="logo-muse">baba</span>
           </span>

@@ -1,57 +1,11 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import SongCard from '../components/SongCard'
 import SEO from '../components/SEO'
 import './CatalogPage.css'
 
-const PLACEHOLDER_SONGS = [
-  'River flows in you',
-  'Canon in D',
-  'Happy birthday',
-  'Twinkle twinkle',
-  'Fur Elise',
-  'Over the rainbow',
-  'A thousand years',
-]
-
-function useTypingPlaceholder(words) {
-  const [placeholder, setPlaceholder] = useState('')
-  const index = useRef(0)
-  const charIndex = useRef(0)
-  const deleting = useRef(false)
-
-  useEffect(() => {
-    let timeout
-    function tick() {
-      const word = words[index.current]
-      if (deleting.current) {
-        charIndex.current--
-        setPlaceholder(word.slice(0, charIndex.current))
-        if (charIndex.current === 0) {
-          deleting.current = false
-          index.current = (index.current + 1) % words.length
-          timeout = setTimeout(tick, 400)
-        } else {
-          timeout = setTimeout(tick, 40)
-        }
-      } else {
-        charIndex.current++
-        setPlaceholder(word.slice(0, charIndex.current))
-        if (charIndex.current === word.length) {
-          deleting.current = true
-          timeout = setTimeout(tick, 1800)
-        } else {
-          timeout = setTimeout(tick, 80)
-        }
-      }
-    }
-    timeout = setTimeout(tick, 600)
-    return () => clearTimeout(timeout)
-  }, [])
-
-  return placeholder
-}
+const SKELETON_CARD_COUNT = 8
 
 const GENRES = ['all', 'children', 'pop', 'classical', 'folk', 'anime', 'other']
 const DIFFICULTIES = ['all', 'beginner', 'intermediate', 'advanced']
@@ -63,20 +17,23 @@ const SORT_OPTIONS = [
 
 export default function CatalogPage() {
   const { user } = useAuth()
-  const typingPlaceholder = useTypingPlaceholder(PLACEHOLDER_SONGS)
   const [songs, setSongs] = useState([])
   const [favorites, setFavorites] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [initialLoading, setInitialLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [loadError, setLoadError] = useState(null)
   const [search, setSearch] = useState('')
   const [genre, setGenre] = useState('all')
   const [difficulty, setDifficulty] = useState('all')
   const [sort, setSort] = useState('newest')
+  const loadedOnceRef = useRef(false)
 
   useEffect(() => {
     let cancelled = false
     async function fetchSongs() {
-      setLoading(true)
+      const isFirstLoad = !loadedOnceRef.current
+      if (isFirstLoad) setInitialLoading(true)
+      else setRefreshing(true)
       setLoadError(null)
       try {
         if (!isSupabaseConfigured) {
@@ -117,7 +74,11 @@ export default function CatalogPage() {
           setLoadError(e?.message ?? 'Could not load songs. Check the network and Supabase project.')
         }
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) {
+          loadedOnceRef.current = true
+          setInitialLoading(false)
+          setRefreshing(false)
+        }
       }
     }
     fetchSongs()
@@ -184,19 +145,21 @@ export default function CatalogPage() {
         <div className="hero-search-wrap">
           <input
             className="hero-search"
-            type="text"
-            placeholder={search ? '' : (typingPlaceholder || 'Search songs...')}
+            type="search"
+            placeholder="Search songs..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-        {!loading && !loadError && <p className="hero-count">{songs.length} songs available</p>}
+        <p className="hero-count" aria-live="polite">
+          {initialLoading || loadError ? '\u00A0' : `${songs.length} songs available`}
+        </p>
       </div>
 
       <div className="container">
 
         {/* Filters */}
-        <div className="filters">
+        <div className={`filters${refreshing ? ' filters--refreshing' : ''}`}>
           <div className="filter-row">
             <FilterGroup label="Genre" value={genre} onChange={setGenre} options={GENRES} />
             <FilterGroup label="Level" value={difficulty} onChange={setDifficulty} options={DIFFICULTIES} />
@@ -207,8 +170,13 @@ export default function CatalogPage() {
         </div>
 
         {/* Results */}
-        {loading ? (
-          <div className="loading-state">Loading songs...</div>
+        <div className="catalog-results">
+        {initialLoading ? (
+          <div className="catalog-grid catalog-grid--skeleton" aria-busy="true" aria-label="Loading songs">
+            {Array.from({ length: SKELETON_CARD_COUNT }, (_, i) => (
+              <div key={i} className="song-card-skeleton" aria-hidden="true" />
+            ))}
+          </div>
         ) : loadError ? (
           <div className="empty-state catalog-load-error" role="alert">
             <p className="catalog-load-error-title">Could not load songs</p>
@@ -228,6 +196,7 @@ export default function CatalogPage() {
             ))}
           </div>
         )}
+        </div>
 
       </div>
     </div>

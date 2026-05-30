@@ -16,6 +16,7 @@
   flex-direction: column;
   gap: 10px;
   padding: 20px 48px 18px 20px;
+  min-height: 148px;
 }
 
 .song-card-title {
@@ -46,6 +47,7 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  min-height: 2.4em;
 }
 
 .song-card-plays {
