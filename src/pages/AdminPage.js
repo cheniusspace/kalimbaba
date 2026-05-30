@@ -19,7 +19,7 @@ const SAMPLE_IMPORT = `\`\`\`meta
 title:       Twinkle Twinkle Little Star
 author:      Traditional
 genre:       children
-description: Classic children's lullaby, simple single-octave arrangement.
+description: Twinkle Twinkle Little Star is a traditional English lullaby whose gentle melody has been sung to generations of children. The lyrics wonder at a distant star, and the tune is shared with songs like "Baa, Baa, Black Sheep" and the Alphabet Song. Its simple, repeating notes make it a natural first piece on the kalimba.
 youtube:
 \`\`\`
 
@@ -33,6 +33,9 @@ description:
 1:Twin-\t1:kle\t5:lit-\t5:tle\t6:star\t6:how\t5:I
 4:won-\t4:der\t3:what\t3:you\t2:are\t2:\t1:
 \`\`\``
+
+const SONG_DESCRIPTION_EXAMPLE =
+  'Old MacDonald Had a Farm is a classic English-language nursery rhyme and children\'s song dating back to the early 1900s, with roots possibly as old as 1706. The song travels through a farmer\'s barnyard, introducing animals and their sounds with the iconic "E-I-E-I-O" chorus. It\'s one of the most interactive children\'s songs ever written — perfect for learning animal sounds and playing along on the kalimba!'
 
 function emptyCell() { return { note: '', syllable: '' } }
 
@@ -1040,7 +1043,7 @@ export default function AdminPage() {
                   className="field-input import-textarea"
                   value={importText}
                   onChange={e => setImportText(e.target.value)}
-                  placeholder={'```meta\ntitle:       Twinkle Twinkle Little Star\nauthor:      Traditional\ngenre:       children\ndescription: Classic lullaby.\nyoutube:\n```\n\n```version\nname:        Original\ndifficulty:  beginner\ndescription:\n```\n\n```tabs\n1:Twin-\t1:kle\t5:lit-\t5:tle\t6:star\n4:won-\t4:der\t3:what\t3:you\t2:are\n```'}
+                  placeholder={'```meta\ntitle:       Twinkle Twinkle Little Star\nauthor:      Traditional\ngenre:       children\ndescription: Twinkle Twinkle Little Star is a traditional English lullaby whose gentle melody has been sung to generations of children...\nyoutube:\n```\n\n```version\nname:        Original\ndifficulty:  beginner\ndescription:\n```\n\n```tabs\n1:Twin-\t1:kle\t5:lit-\t5:tle\t6:star\n4:won-\t4:der\t3:what\t3:you\t2:are\n```'}
                   rows={12}
                   spellCheck={false}
                 />
@@ -1071,7 +1074,15 @@ export default function AdminPage() {
                     <SelectField label="Genre" value={form.genre} onChange={v => setForm(f => ({ ...f, genre: v }))}
                       options={['', 'children', 'pop', 'classical', 'folk', 'anime', 'other']} />
                     <Field label="Author / Artist" value={form.author} onChange={v => setForm(f => ({ ...f, author: v }))} />
-                    <Field label="Description" value={form.description} onChange={v => setForm(f => ({ ...f, description: v }))} multiline />
+                    <Field
+                      label="Description"
+                      value={form.description}
+                      onChange={v => setForm(f => ({ ...f, description: v }))}
+                      multiline
+                      rows={5}
+                      placeholder={SONG_DESCRIPTION_EXAMPLE}
+                      hint="Write 2–3 warm sentences about the song itself — origin, story, or why it is familiar. It is fine to mention kalimba in the last sentence."
+                    />
                     <div className="field">
                       <label className="field-label">YouTube Videos</label>
                       {(form.youtube_videos ?? []).map((v, i) => (
@@ -1357,13 +1368,14 @@ export default function AdminPage() {
   )
 }
 
-function Field({ label, value, onChange, multiline }) {
+function Field({ label, value, onChange, multiline, placeholder, hint, rows = 3 }) {
   return (
     <div className="field">
       <label className="field-label">{label}</label>
+      {hint && <p className="edit-hint field-hint">{hint}</p>}
       {multiline
-        ? <textarea className="field-input" rows={3} value={value} onChange={e => onChange(e.target.value)} />
-        : <input className="field-input" type="text" value={value} onChange={e => onChange(e.target.value)} />
+        ? <textarea className="field-input" rows={rows} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
+        : <input className="field-input" type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
       }
     </div>
   )
