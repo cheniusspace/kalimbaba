@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowDown, ArrowUp, Copy, Plus, Trash2, Eye, EyeOff, ClipboardPaste, X, Download } from 'lucide-react'
+import { Copy, GripVertical, Plus, Trash2, Eye, EyeOff, ClipboardPaste, X, Download } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import MarkdownContent from '../components/MarkdownContent'
@@ -47,6 +47,7 @@ function normalizeTabLines(tabs) {
   const nextTabs = tabs.length ? tabs : [{ line_order: 1, cells: [emptyCell()] }]
   return nextTabs.map((tab, index) => ({
     ...tab,
+    _dragId: tab._dragId ?? tab.id ?? `tl-${Date.now()}-${index}`,
     line_order: index + 1,
     cells: tab.cells?.length ? tab.cells : [emptyCell()],
   }))
@@ -124,6 +125,7 @@ function tabRowFromDb(row) {
   }))
   return {
     id: row.id,
+    _dragId: row.id,
     line_order: row.line_order,
     cells: cells.length ? cells : [emptyCell()],
   }
@@ -361,7 +363,14 @@ export default function AdminPage() {
   const [versions, setVersions] = useState([])     // [{ id, name, difficulty, description, is_default, sort_order, tabs: [{id?, line_order, raw}] }]
   const [removedVersionIds, setRemovedVersionIds] = useState([])
   const [activeVersionIdx, setActiveVersionIdx] = useState(0)
+  const [dragTabLineIdx, setDragTabLineIdx] = useState(null)
+  const [dragOverTabLineIdx, setDragOverTabLineIdx] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [saveStatus, setSaveStatus] = useState('idle') // idle | saving | saved | error
+  const [saveError, setSaveError] = useState('')
+  const skipAutosaveRef = useRef(true)
+  const saveInFlightRef = useRef(false)
+  const pendingAutosaveRef = useRef(false)
   const [view, setView] = useState('list')         // 'list' | 'edit'
   const [importOpen, setImportOpen] = useState(false)
   const [importText, setImportText] = useState('')
@@ -389,18 +398,24 @@ export default function AdminPage() {
   }
 
   function startNew() {
+    skipAutosaveRef.current = true
     setEditing(null)
     setForm(EMPTY_SONG)
     setVersions([newVersion()])
     setRemovedVersionIds([])
     setActiveVersionIdx(0)
+    setSaveStatus('idle')
+    setSaveError('')
     setView('edit')
   }
 
   async function startEdit(song) {
+    skipAutosaveRef.current = true
     setEditing(song)
     setForm({ ...song })
     setRemovedVersionIds([])
+    setSaveStatus('idle')
+    setSaveError('')
 
     const { data: versionRows } = await supabase
       .from('song_versions')
@@ -527,18 +542,28 @@ export default function AdminPage() {
     focusCell(versionIdx, insertAt, 0, 'note')
   }
 
-  function moveTabLine(versionIdx, lineIdx, direction) {
-    const targetIdx = lineIdx + direction
+  function reorderTabLine(versionIdx, fromIdx, toIdx) {
+    if (fromIdx === toIdx) return
     const currentTabs = versions[versionIdx]?.tabs ?? []
-    if (targetIdx < 0 || targetIdx >= currentTabs.length) return
+    if (fromIdx < 0 || fromIdx >= currentTabs.length || toIdx < 0 || toIdx >= currentTabs.length) return
     setVersions(prev => prev.map((v, i) => {
       if (i !== versionIdx) return v
       const nextTabs = [...v.tabs]
-      ;[nextTabs[lineIdx], nextTabs[targetIdx]] = [nextTabs[targetIdx], nextTabs[lineIdx]]
+      const [moved] = nextTabs.splice(fromIdx, 1)
+      nextTabs.splice(toIdx, 0, moved)
       return { ...v, tabs: normalizeTabLines(nextTabs) }
     }))
-    focusCell(versionIdx, targetIdx, 0, 'note')
+    focusCell(versionIdx, toIdx, 0, 'note')
   }
+
+  function clearTabLineDrag() {
+    setDragTabLineIdx(null)
+    setDragOverTabLineIdx(null)
+  }
+
+  useEffect(() => {
+    clearTabLineDrag()
+  }, [activeVersionIdx])
 
   function updateCell(versionIdx, lineIdx, cellIdx, field, value) {
     setVersions(prev => prev.map((v, i) => {
@@ -730,85 +755,155 @@ export default function AdminPage() {
     setImportError('')
   }
 
-  async function handleSave() {
+  const persistSong = useCallback(async ({ exitAfterSave = false } = {}) => {
+    if (saveInFlightRef.current) {
+      pendingAutosaveRef.current = true
+      return false
+    }
+    if (!form.title?.trim()) {
+      if (exitAfterSave) {
+        setSaveStatus('error')
+        setSaveError('Add a title before saving.')
+      }
+      return false
+    }
+
+    saveInFlightRef.current = true
     setSaving(true)
-    let songId = editing?.id
+    setSaveStatus('saving')
+    setSaveError('')
 
-    const songData = {
-      title: form.title,
-      slug: form.slug || form.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-      genre: form.genre,
-      author: form.author,
-      description: form.description,
-      youtube_videos: form.youtube_videos ?? [],
-      is_published: form.is_published,
-      updated_at: new Date().toISOString(),
-    }
+    try {
+      let songId = editing?.id
 
-    if (editing) {
-      await supabase.from('songs').update(songData).eq('id', songId)
-    } else {
-      const { data } = await supabase.from('songs').insert(songData).select().single()
-      songId = data.id
-    }
-
-    // Remove versions the user deleted from the UI
-    if (removedVersionIds.length) {
-      await supabase.from('song_versions').delete().in('id', removedVersionIds)
-    }
-
-    // Ensure exactly one default
-    const versionsToSave = versions.map((v, i) => ({ ...v, sort_order: i }))
-    const defaultIdx = Math.max(0, versionsToSave.findIndex(v => v.is_default))
-    versionsToSave.forEach((v, i) => { v.is_default = i === defaultIdx })
-
-    for (const v of versionsToSave) {
-      const versionPayload = {
-        song_id: songId,
-        name: v.name?.trim() || 'Original',
-        difficulty: v.difficulty || 'beginner',
-        description: v.description?.trim() || null,
-        is_default: v.is_default,
-        sort_order: v.sort_order,
+      const songData = {
+        title: form.title.trim(),
+        slug: form.slug || slugify(form.title),
+        genre: form.genre,
+        author: form.author,
+        description: form.description,
+        youtube_videos: form.youtube_videos ?? [],
+        is_published: form.is_published,
         updated_at: new Date().toISOString(),
       }
 
-      let versionId = v.id
-      if (versionId) {
-        await supabase.from('song_versions').update(versionPayload).eq('id', versionId)
+      if (editing) {
+        const { error } = await supabase.from('songs').update(songData).eq('id', songId)
+        if (error) throw error
       } else {
-        const { data: inserted } = await supabase
-          .from('song_versions')
-          .insert(versionPayload)
-          .select()
-          .single()
-        versionId = inserted?.id
+        const { data, error } = await supabase.from('songs').insert(songData).select().single()
+        if (error) throw error
+        songId = data.id
+        setEditing(data)
       }
-      if (!versionId) continue
 
-      await supabase.from('tabs').delete().eq('song_version_id', versionId)
-      const tabInserts = v.tabs
-        .map((t, i) => {
-          const notes = []
-          const syllables = []
-          for (const c of t.cells ?? []) {
-            const parsed = parseNoteToken(c.note)
-            if (!parsed.note) continue
-            notes.push(parsed)
-            syllables.push(c.syllable ?? '')
-          }
-          if (notes.length === 0) return null
-          return { song_version_id: versionId, line_order: i + 1, notes, syllables }
-        })
-        .filter(Boolean)
-      if (tabInserts.length) {
-        await supabase.from('tabs').insert(tabInserts)
+      if (removedVersionIds.length) {
+        const { error } = await supabase.from('song_versions').delete().in('id', removedVersionIds)
+        if (error) throw error
+      }
+
+      const versionsToSave = versions.map((v, i) => ({ ...v, sort_order: i }))
+      const defaultIdx = Math.max(0, versionsToSave.findIndex(v => v.is_default))
+      versionsToSave.forEach((v, i) => { v.is_default = i === defaultIdx })
+
+      const nextVersions = []
+      for (const v of versionsToSave) {
+        const versionPayload = {
+          song_id: songId,
+          name: v.name?.trim() || 'Original',
+          difficulty: v.difficulty || 'beginner',
+          description: v.description?.trim() || null,
+          is_default: v.is_default,
+          sort_order: v.sort_order,
+          updated_at: new Date().toISOString(),
+        }
+
+        let versionId = v.id
+        if (versionId) {
+          const { error } = await supabase.from('song_versions').update(versionPayload).eq('id', versionId)
+          if (error) throw error
+        } else {
+          const { data: inserted, error } = await supabase
+            .from('song_versions')
+            .insert(versionPayload)
+            .select()
+            .single()
+          if (error) throw error
+          versionId = inserted?.id
+        }
+        if (!versionId) continue
+
+        const { error: tabDeleteError } = await supabase.from('tabs').delete().eq('song_version_id', versionId)
+        if (tabDeleteError) throw tabDeleteError
+
+        const tabInserts = v.tabs
+          .map((t, i) => {
+            const notes = []
+            const syllables = []
+            for (const c of t.cells ?? []) {
+              const parsed = parseNoteToken(c.note)
+              if (!parsed.note) continue
+              notes.push(parsed)
+              syllables.push(c.syllable ?? '')
+            }
+            if (notes.length === 0) return null
+            return { song_version_id: versionId, line_order: i + 1, notes, syllables }
+          })
+          .filter(Boolean)
+        if (tabInserts.length) {
+          const { error: tabInsertError } = await supabase.from('tabs').insert(tabInserts)
+          if (tabInsertError) throw tabInsertError
+        }
+
+        nextVersions.push({ ...v, id: versionId })
+      }
+
+      setVersions(nextVersions)
+      setRemovedVersionIds([])
+      skipAutosaveRef.current = true
+      setSaveStatus('saved')
+      fetchSongs()
+
+      if (exitAfterSave) setView('list')
+      return true
+    } catch (err) {
+      setSaveStatus('error')
+      setSaveError(err.message || 'Could not save song.')
+      return false
+    } finally {
+      saveInFlightRef.current = false
+      setSaving(false)
+      if (pendingAutosaveRef.current) {
+        pendingAutosaveRef.current = false
+        queueMicrotask(() => { persistSong() })
       }
     }
+  }, [editing, form, removedVersionIds, versions])
 
-    setRemovedVersionIds([])
-    setSaving(false)
-    fetchSongs()
+  useEffect(() => {
+    if (view !== 'edit') return undefined
+    if (skipAutosaveRef.current) {
+      skipAutosaveRef.current = false
+      return undefined
+    }
+    if (!form.title?.trim()) return undefined
+
+    setSaveStatus('idle')
+    const timer = setTimeout(() => {
+      persistSong()
+    }, 1500)
+
+    return () => clearTimeout(timer)
+  }, [form, versions, removedVersionIds, view, persistSong])
+
+  async function handleSave() {
+    await persistSong({ exitAfterSave: true })
+  }
+
+  async function handleBackToList() {
+    if (form.title?.trim()) {
+      await persistSong()
+    }
     setView('list')
   }
 
@@ -899,8 +994,20 @@ export default function AdminPage() {
         {view === 'edit' && (
           <div className="edit-view">
             <div className="edit-header">
-              <button className="btn btn-outline" onClick={() => setView('list')}>← Back</button>
-              <h2 className="admin-title font-title">{editing ? 'Edit Song' : 'New Song'}</h2>
+              <button className="btn btn-outline" onClick={handleBackToList}>← Back</button>
+              <div className="edit-header-main">
+                <h2 className="admin-title font-title">{editing ? 'Edit Song' : 'New Song'}</h2>
+                <span
+                  className={`autosave-status autosave-status--${saveStatus}`}
+                  role="status"
+                  aria-live="polite"
+                >
+                  {saveStatus === 'saving' && 'Saving…'}
+                  {saveStatus === 'saved' && 'All changes saved'}
+                  {saveStatus === 'error' && (saveError || 'Save failed')}
+                  {saveStatus === 'idle' && form.title?.trim() && 'Unsaved changes'}
+                </span>
+              </div>
               <button
                 type="button"
                 className="btn btn-outline edit-header-action"
@@ -1085,11 +1192,59 @@ export default function AdminPage() {
                       </h3>
                     </div>
                     <p className="edit-hint">
-                      Each note is its own cell. Use the line buttons to add, copy, or move rows. Press <kbd>Tab</kbd> to move to the next note, <kbd>Enter</kbd> to jump to the lyric below, <kbd>Backspace</kbd> on an empty cell to delete it. Use <code>*</code> (or <code>°</code>) for high octave, <code>**</code> for double-high. Pasting a space/comma/tab-separated list splits into cells automatically.
+                      Each note is its own cell. Drag the grip handle to reorder lines, use <strong>+ Add line</strong> between rows to insert, or copy/delete from the line actions. Press <kbd>Tab</kbd> to move to the next note, <kbd>Enter</kbd> to jump to the lyric below, <kbd>Backspace</kbd> on an empty cell to delete it. Use <code>*</code> (or <code>°</code>) for high octave, <code>**</code> for double-high. Pasting a space/comma/tab-separated list splits into cells automatically.
                     </p>
                     <div className="tab-lines">
+                      <button
+                        type="button"
+                        className="tab-line-insert"
+                        onClick={() => addTabLine(i, -1)}
+                        aria-label="Add line at start"
+                      >
+                        <Plus size={12} aria-hidden />
+                        Add line
+                      </button>
                       {v.tabs.map((t, j) => (
-                        <div key={j} className="tab-line-row">
+                        <div key={t._dragId ?? j} className="tab-line-block">
+                        <div
+                          className={[
+                            'tab-line-row',
+                            dragTabLineIdx === j ? 'tab-line-row--dragging' : '',
+                            dragOverTabLineIdx === j && dragTabLineIdx !== j ? 'tab-line-row--drag-over' : '',
+                          ].filter(Boolean).join(' ')}
+                          onDragOver={e => {
+                            e.preventDefault()
+                            e.dataTransfer.dropEffect = 'move'
+                            if (dragOverTabLineIdx !== j) setDragOverTabLineIdx(j)
+                          }}
+                          onDrop={e => {
+                            e.preventDefault()
+                            const fromRaw = e.dataTransfer.getData('application/x-tab-line')
+                            const fromIdx = dragTabLineIdx ?? (fromRaw === '' ? null : Number(fromRaw))
+                            if (fromIdx == null || Number.isNaN(fromIdx)) {
+                              clearTabLineDrag()
+                              return
+                            }
+                            reorderTabLine(i, fromIdx, j)
+                            clearTabLineDrag()
+                          }}
+                        >
+                          <button
+                            type="button"
+                            className="tab-line-drag-handle"
+                            draggable
+                            aria-label={`Drag line ${j + 1} to reorder`}
+                            title="Drag to reorder"
+                            onDragStart={e => {
+                              e.dataTransfer.effectAllowed = 'move'
+                              e.dataTransfer.setData('application/x-tab-line', String(j))
+                              setDragTabLineIdx(j)
+                              setDragOverTabLineIdx(j)
+                            }}
+                            onDragEnd={clearTabLineDrag}
+                          >
+                            <GripVertical size={14} aria-hidden />
+                          </button>
                           <span className="tab-line-num">{j + 1}</span>
                           <div className="tab-cells">
                             {t.cells.map((c, k) => (
@@ -1143,40 +1298,11 @@ export default function AdminPage() {
                             <button
                               type="button"
                               className="icon-btn tab-line-action"
-                              onClick={() => addTabLine(i, j)}
-                              aria-label="Add line below"
-                              title="Add line below"
-                            >
-                              <Plus size={14} />
-                            </button>
-                            <button
-                              type="button"
-                              className="icon-btn tab-line-action"
                               onClick={() => duplicateTabLine(i, j)}
                               aria-label="Copy line"
                               title="Copy line"
                             >
                               <Copy size={14} />
-                            </button>
-                            <button
-                              type="button"
-                              className="icon-btn tab-line-action"
-                              onClick={() => moveTabLine(i, j, -1)}
-                              disabled={j === 0}
-                              aria-label="Move line up"
-                              title="Move line up"
-                            >
-                              <ArrowUp size={14} />
-                            </button>
-                            <button
-                              type="button"
-                              className="icon-btn tab-line-action"
-                              onClick={() => moveTabLine(i, j, 1)}
-                              disabled={j === v.tabs.length - 1}
-                              aria-label="Move line down"
-                              title="Move line down"
-                            >
-                              <ArrowDown size={14} />
                             </button>
                             <button
                               type="button"
@@ -1189,10 +1315,17 @@ export default function AdminPage() {
                             </button>
                           </div>
                         </div>
+                        <button
+                          type="button"
+                          className="tab-line-insert"
+                          onClick={() => addTabLine(i, j)}
+                          aria-label={`Add line after line ${j + 1}`}
+                        >
+                          <Plus size={12} aria-hidden />
+                          Add line
+                        </button>
+                        </div>
                       ))}
-                      <button className="btn btn-outline add-line-btn" onClick={() => addTabLine(i)}>
-                        <Plus size={14} /> Add Line
-                      </button>
                     </div>
                   </div>
                 )
@@ -1207,9 +1340,9 @@ export default function AdminPage() {
             )}
 
             <div className="edit-footer">
-              <button className="btn btn-outline" onClick={() => setView('list')}>Cancel</button>
+              <button className="btn btn-outline" onClick={handleBackToList}>Back to list</button>
               <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-                {saving ? 'Saving...' : 'Save Song'}
+                {saving ? 'Saving...' : 'Save & close'}
               </button>
             </div>
           </div>
