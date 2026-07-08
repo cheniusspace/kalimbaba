@@ -594,6 +594,10 @@
 .edit-footer { display: flex; justify-content: flex-end; gap: 10px; padding-top: 8px; }
 
 @media (max-width: 768px) {
+  .admin-page {
+    padding-top: 32px;
+  }
+
   .admin-header {
     flex-direction: column;
     align-items: flex-start;
@@ -612,5 +616,30 @@
 
   .field-row {
     grid-template-columns: 1fr;
+  }
+
+  .field-input,
+  .import-textarea,
+  .article-content-input,
+  .tab-cell-note,
+  .tab-cell-syl {
+    font-size: 16px;
+  }
+
+  .admin-section-tabs,
+  .version-tabs {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-row-actions .icon-btn,
+  .tab-line-action {
+    width: 44px;
+    height: 44px;
+  }
+
+  .tab-line-row {
+    gap: 8px;
   }
 }

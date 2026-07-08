@@ -84,6 +84,10 @@
 .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
 
 .pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
   padding: 4px 12px;
   font-size: 0.78rem;
   border-radius: 20px;
@@ -114,6 +118,15 @@
     align-items: stretch;
   }
 
+  .filter-pills {
+    gap: 8px;
+  }
+
+  .pill {
+    min-height: 44px;
+    padding: 8px 14px;
+  }
+
   .sort-select {
     margin-left: 0;
     width: 100%;
@@ -127,7 +140,7 @@
 
 .catalog-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
   gap: 12px;
 }
 
@@ -172,6 +185,6 @@
 }
 
 @media (max-width: 640px) {
-  .catalog-hero { padding: 48px 24px 40px; }
+  .catalog-hero { padding: 40px 16px 32px; }
   .sort-select { margin-left: 0; }
 }

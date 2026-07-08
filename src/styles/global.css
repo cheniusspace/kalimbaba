@@ -52,6 +52,7 @@ body {
   font-size: 16px;
   line-height: 1.7;
   letter-spacing: 0.02em;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.2s, color 0.2s;
@@ -104,6 +105,19 @@ section { margin-bottom: 48px; }
   .container {
     padding-left: max(16px, env(safe-area-inset-left));
     padding-right: max(16px, env(safe-area-inset-right));
+  }
+}
+
+@media (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  .btn {
+    min-height: 44px;
+    justify-content: center;
   }
 }
 

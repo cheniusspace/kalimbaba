@@ -68,3 +68,20 @@
 }
 .song-card-fav:hover { color: var(--danger); }
 .song-card-fav.active { color: var(--danger); }
+
+@media (max-width: 540px) {
+  .song-card-body {
+    padding: 18px 56px 18px 18px;
+  }
+
+  .song-card-fav {
+    top: 8px;
+    right: 8px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

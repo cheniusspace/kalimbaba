@@ -97,6 +97,10 @@
     padding: 1.15rem min(0.5rem, 3vw) 1.75rem;
     min-height: min(100dvh - 1.5rem, 960px);
   }
+
+  .kalimba-settings-select {
+    font-size: 16px;
+  }
 }
 
 .kalimba-wrap[data-compact] {

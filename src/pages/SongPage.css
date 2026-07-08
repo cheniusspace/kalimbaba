@@ -507,7 +507,7 @@
 
 .song-videos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
   gap: 20px;
 }
 
@@ -555,22 +555,26 @@
 
 .song-similar-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
   gap: 12px;
 }
 
 @media (max-width: 767px) {
   .song-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     padding: 12px 12px 8px;
   }
 
   .song-header-actions {
-    top: 8px;
-    right: 8px;
+    position: static;
+    align-self: flex-end;
+    margin-bottom: 4px;
   }
 
   .song-title {
-    padding: 0 82px; /* reserve room for absolutely-positioned action icons */
+    padding: 0;
   }
 
   .song-subtitle {
@@ -583,8 +587,8 @@
   }
 
   .song-icon-btn {
-    width: 24px;
-    height: 24px;
+    width: 40px;
+    height: 40px;
   }
 
   /* Prev / Practice / Next: stay compact — prev/next chevron-only */
@@ -596,7 +600,8 @@
 
   .song-nav-link {
     padding: 8px 12px;
-    min-height: 38px;
+    min-width: 44px;
+    min-height: 44px;
     gap: 0;
     justify-content: center;
   }
@@ -618,7 +623,7 @@
 
   .song-nav-practice {
     padding: 0 16px;
-    min-height: 38px;
+    min-height: 44px;
     justify-content: center;
   }
 
@@ -630,6 +635,15 @@
 @media (max-width: 480px) {
   .tab-row,
   .tab-row-2col { padding: 12px 14px 10px; }
+
+  .song-description {
+    padding: 22px 18px;
+  }
+
+  .legend {
+    padding: 14px 16px;
+    gap: 10px;
+  }
 }
 
 /* ── Practice mode: tab line + virtual kalimba on one iPhone-class screen (~≤430px) ── */
